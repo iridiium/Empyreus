@@ -1,4 +1,21 @@
-import pygame, random
+import pygame
+from random import randint
+
+
+# Helper functions
+def shuffle(arr, n=None):
+    """
+    Implementation of the Fisher-Yates algorithm.
+    """
+    if n == None:
+        n = len(arr)
+
+    for i in range(n - 1, 0, -1):
+        j = randint(0, i + 1)
+
+        arr[i], arr[j] = arr[j], arr[i]
+
+    return arr
 
 
 # Image classes
@@ -15,32 +32,40 @@ class Background(pygame.sprite.Sprite):
 
 
 class Spritesheet:
-    def __init__(self, image_file, sprite_dimensions):
+    def __init__(self, image_file, sprite_size):
         self.image = pygame.image.load(image_file)
-        self.sprite_dimensions = sprite_dimensions
+        self.sprite_size = sprite_size
 
-    def get_sprite(self, sprite_position):
+        self.num_row_sprites = self.image.get_width() / self.sprite_size[0]
+        self.num_col_sprites = self.image.get_height() / self.sprite_size[1]
+
+    def get_sprite(self, sprite_pos):
         return self.image.subsurface(
             pygame.Rect(
-                sprite_position[0] * self.sprite_dimensions[0],
-                sprite_position[1] * self.sprite_dimensions[1],
-                self.sprite_dimensions[0],
-                self.sprite_dimensions[1],
+                sprite_pos[0] * self.sprite_size[0],
+                sprite_pos[1] * self.sprite_size[1],
+                self.sprite_size[0],
+                self.sprite_size[1],
             )
         )
 
-    def get_random_sprite(self):
-        sprites_in_row = self.image.get_width() / self.sprite_dimensions[0]
-        sprites_in_column = self.image.get_height() / self.sprite_dimensions[1]
+    def get_sprite_rect(self, pos):
+        return pygame.Rect(
+            pos[0],
+            pos[1],
+            self.sprite_size[0],
+            self.sprite_size[1],
+        )
 
+    def get_random_sprite(self):
         return self.image.subsurface(
-            pygame.Rect(
-                random.randint(0, int(sprites_in_row) - 1)
-                * self.sprite_dimensions[0],
-                random.randint(0, int(sprites_in_column) - 1)
-                * self.sprite_dimensions[1],
-                self.sprite_dimensions[0],
-                self.sprite_dimensions[1],
+            self.get_sprite_rect(
+                (
+                    randint(0, int(self.num_row_sprites) - 1)
+                    * self.sprite_size[0],
+                    randint(0, int(self.num_col_sprites) - 1)
+                    * self.sprite_size[1],
+                )
             )
         )
 
@@ -125,15 +150,14 @@ class Board:
             for x, cell in enumerate(row):
                 colour = cell.get_colour()
 
-                rect_object = cell.get_rect_object(x, y)
+                # rect_object = cell.get_rect_object(x, y)
+                # pygame.draw.rect(
+                #     window,
+                #     colour,
+                #     rect_object,
+                # )
+
                 picture_rect_object = cell.get_picture_rect_object(x, y)
-
-                pygame.draw.rect(
-                    window,
-                    colour,
-                    rect_object,
-                )
-
                 window.blit(cell.get_image(), picture_rect_object)
 
 
@@ -151,8 +175,8 @@ TILE_BORDER_SIZE = 8
 TILE_TOTAL_SIZE = TILE_SIZE + TILE_BORDER_SIZE
 
 BOARD_POS = (
-    (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_TOTAL_SIZE) / 2,
-    (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_TOTAL_SIZE) / 2,
+    (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_TOTAL_SIZE - TILE_BORDER_SIZE) / 2,
+    (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_TOTAL_SIZE - TILE_BORDER_SIZE) / 2,
 )
 
 
