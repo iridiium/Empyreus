@@ -32,14 +32,16 @@ class Background(pygame.sprite.Sprite):
 
 
 class Spritesheet:
-    def __init__(self, image_file, sprite_size):
+    def __init__(self, image_file, sprite_size, names):
         self.image = pygame.image.load(image_file)
         self.sprite_size = sprite_size
 
         self.num_row_sprites = self.image.get_width() / self.sprite_size[0]
         self.num_col_sprites = self.image.get_height() / self.sprite_size[1]
 
-    def get_sprite(self, sprite_pos):
+        self.names = names
+
+    def get_sprite_by_position(self, sprite_pos):
         return self.image.subsurface(
             pygame.Rect(
                 sprite_pos[0] * self.sprite_size[0],
@@ -48,6 +50,11 @@ class Spritesheet:
                 self.sprite_size[1],
             )
         )
+
+    def get_sprite_by_name(self, sprite_name):
+        sprite_pos = self.names[sprite_name]
+
+        return self.get_sprite_by_position(sprite_pos)
 
     def get_sprite_rect(self, pos):
         return pygame.Rect(
@@ -120,6 +127,7 @@ class Board:
         tile_size,
         tile_border_size,
         spritesheet,
+        tiles,
     ):
         self.num_in_row = num_in_row
         self.num_in_column = num_in_column
@@ -129,6 +137,7 @@ class Board:
         self.tile_size = tile_size
         self.tile_border_size = tile_border_size
         self.spritesheet = spritesheet
+        self.tiles = self.distribute_tiles(tiles)
 
         self.rows = [
             [
@@ -136,7 +145,7 @@ class Board:
                     x_pos,
                     y_pos,
                     tile_colour,
-                    spritesheet.get_random_sprite(),
+                    next(self.tiles),
                     tile_size,
                     tile_border_size,
                 )
@@ -144,6 +153,17 @@ class Board:
             ]
             for _ in range(self.num_in_column)
         ]
+
+    def distribute_tiles(self, tiles):
+        distributed_tiles = []
+        for tile_type, tile_count in tiles.items():
+            for _ in range(tile_count):
+                distributed_tiles.insert(
+                    randint(0, len(distributed_tiles)),
+                    self.spritesheet.get_sprite_by_name(tile_type),
+                )
+
+        return iter(distributed_tiles)
 
     def draw_self(self, window):
         for y, row in enumerate(self.rows):
@@ -188,7 +208,16 @@ def main():
 
     bg = Background("back_900x675.png", (0, 0))
     planets = Spritesheet(
-        "CelestialObjects/CelestialObjects_Planets.png", (64, 64)
+        "CelestialObjects/CelestialObjects_Planets.png",
+        (64, 64),
+        {
+            "water": (0, 0),
+            "helium": (0, 1),
+            "ore": (1, 0),
+            "carbon": (1, 1),
+            "antimatter": (2, 0),
+            "empty": (2, 1),
+        },
     )
 
     """
@@ -204,6 +233,14 @@ def main():
         TILE_SIZE,
         TILE_BORDER_SIZE,
         planets,
+        {
+            "water": 3,
+            "helium": 3,
+            "ore": 3,
+            "carbon": 3,
+            "antimatter": 3,
+            "empty": 10,
+        },
     )
 
     running = True
