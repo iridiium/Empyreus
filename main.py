@@ -1,21 +1,6 @@
 import pygame
+import copy
 from random import randint
-
-
-# Helper functions
-def shuffle(arr, n=None):
-    """
-    Implementation of the Fisher-Yates algorithm.
-    """
-    if n == None:
-        n = len(arr)
-
-    for i in range(n - 1, 0, -1):
-        j = randint(0, i + 1)
-
-        arr[i], arr[j] = arr[j], arr[i]
-
-    return arr
 
 
 # Image classes
@@ -80,36 +65,30 @@ class Spritesheet:
 # Board classes
 class Tile:
 
-    def __init__(self, x_pos, y_pos, colour, image, size, border_size):
+    def __init__(self, x_pos, y_pos, colour, image, type, size, border_size):
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.colour = colour
         self.image = image
+        self.type = type
         self.size = size
         self.border_size = border_size
 
-    def get_colour(self):
-        return self.colour
+        self.centre_x_pos = self.x_pos + self.size / 2
+        self.centre_y_pos = self.y_pos + self.size / 2
 
-    def get_image(self):
-        return self.image
-
-    def get_rect_object(self, x, y):
+    def get_rect_object(self):
         return (
-            x * (self.size + self.border_size) + self.x_pos,
-            y * (self.size + self.border_size) + self.y_pos,
+            self.x_pos,
+            self.y_pos,
             self.size,
             self.size,
         )
 
-    def get_picture_rect_object(self, x, y):
+    def get_image_rect_object(self):
         return (
-            x * (self.size + self.border_size)
-            + self.x_pos
-            + self.border_size / 2,
-            y * (self.size + self.border_size)
-            + self.y_pos
-            + self.border_size / 2,
+            self.x_pos + self.border_size / 2,
+            self.y_pos + self.border_size / 2,
             self.size,
             self.size,
         )
@@ -137,48 +116,88 @@ class Board:
         self.tile_size = tile_size
         self.tile_border_size = tile_border_size
         self.spritesheet = spritesheet
-        self.tiles = self.distribute_tiles(tiles)
+        self.tile_arrangement, self.tile_types = self.arrange_tiles(tiles)
 
-        self.rows = [
+        self.board = [
             [
                 Tile(
-                    x_pos,
-                    y_pos,
+                    i * (self.tile_size + self.tile_border_size) + self.x_pos,
+                    j * (self.tile_size + self.tile_border_size) + self.y_pos,
                     tile_colour,
-                    next(self.tiles),
+                    next(self.tile_arrangement),
+                    next(self.tile_types),
                     tile_size,
                     tile_border_size,
                 )
-                for _ in range(self.num_in_row)
+                for i in range(self.num_in_row)
             ]
-            for _ in range(self.num_in_column)
+            for j in range(self.num_in_column)
         ]
 
-    def distribute_tiles(self, tiles):
-        distributed_tiles = []
-        for tile_type, tile_count in tiles.items():
-            for _ in range(tile_count):
-                distributed_tiles.insert(
-                    randint(0, len(distributed_tiles)),
+    def arrange_tiles(self, tiles):
+        result = []
+        tile_types = []
+
+        for tile_type, tile_amount in tiles.items():
+            for _ in range(tile_amount):
+                target = randint(0, len(result))
+                result.insert(
+                    target,
                     self.spritesheet.get_sprite_by_name(tile_type),
                 )
+                tile_types.insert(
+                    target,
+                    tile_type,
+                )
 
-        return iter(distributed_tiles)
+        return iter(result), iter(tile_types)
+
+    def draw_lines(self, window, board):
+        visited = [[tile.type == "empty" for tile in row] for row in board]
+
+        def dfs(i, j, last_i, last_j):
+            visited[i][j] = True
+
+            if last_i is not None and last_j is not None:
+                pygame.draw.line(
+                    window,
+                    WHITE,
+                    (
+                        board[i][j].centre_x_pos,
+                        board[i][j].centre_y_pos,
+                    ),
+                    (
+                        board[last_i][last_j].centre_x_pos,
+                        board[last_i][last_j].centre_y_pos,
+                    ),
+                )
+
+            for k in range(i - 1, i + 2):
+                for l in range(j - 1, j + 2):
+                    if (
+                        k >= 0
+                        and l >= 0
+                        and k < len(visited)
+                        and l < len(visited[0])
+                        and visited[k][l] == False
+                    ):
+                        dfs(k, l, i, j)
+
+        num_islands = 0
+        for i in range(len(board)):
+            for j in range(len(board[0])):
+                if visited[i][j] == False:
+                    num_islands += 1
+                    dfs(i, j, None, None)
+
+        return num_islands
 
     def draw_self(self, window):
-        for y, row in enumerate(self.rows):
-            for x, cell in enumerate(row):
-                colour = cell.get_colour()
-
-                # rect_object = cell.get_rect_object(x, y)
-                # pygame.draw.rect(
-                #     window,
-                #     colour,
-                #     rect_object,
-                # )
-
-                picture_rect_object = cell.get_picture_rect_object(x, y)
-                window.blit(cell.get_image(), picture_rect_object)
+        for j, row in enumerate(self.board):
+            for i, tile in enumerate(row):
+                colour = tile.colour
+                image_rect_object = tile.get_image_rect_object()
+                window.blit(tile.image, image_rect_object)
 
 
 # Constants
@@ -224,7 +243,7 @@ def main():
     num_in_row, num_in_column, x_pos, y_pos
     tile_colour, tile_size, tile_border_size
     """
-    board = Board(
+    main_board = Board(
         BOARD_SIZE[0],
         BOARD_SIZE[1],
         BOARD_POS[0],
@@ -248,7 +267,7 @@ def main():
         clock.tick(100)
 
         pos = pygame.mouse.get_pos()
-        x, y = pos[0], pos[1]
+        i, j = pos[0], pos[1]
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -257,7 +276,8 @@ def main():
         window.fill(WHITE)
         window.blit(bg.image, bg.rect)
 
-        board.draw_self(window)
+        main_board.draw_lines(window, main_board.board)
+        main_board.draw_self(window)
 
         pygame.display.flip()
 
