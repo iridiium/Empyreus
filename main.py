@@ -6,7 +6,7 @@ from random import randint
 # Image classes
 class Background(pygame.sprite.Sprite):
     def __init__(self, image_file, location):
-        pygame.sprite.Sprite.__init__(self)
+        super().__init__()
 
         self.image = pygame.image.load(image_file)
         self.rect = self.image.get_rect()
@@ -62,6 +62,30 @@ class Spritesheet:
         )
 
 
+# Player class
+class Player(pygame.sprite.Sprite):
+    def __init__(self, number, pos, board_pos):
+        super().__init__()
+
+        self.tile_total_size = TILE_TOTAL_SIZE
+
+        self.number = number
+        self.image = pygame.image.load(f"tiny-spaceships/tiny_ship{number}.png")
+
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = tuple(
+            (
+                board_pos[i]
+                + pos[i] * self.tile_total_size
+                + (self.tile_total_size - self.image.get_size()[i]) / 2
+                for i in range(2)
+            )
+        )
+
+    def draw_self(self, window):
+        window.blit(self.image, self.rect)
+
+
 # Board classes
 class Tile:
 
@@ -77,13 +101,7 @@ class Tile:
         self.centre_x_pos = self.x_pos + self.size / 2
         self.centre_y_pos = self.y_pos + self.size / 2
 
-    def get_rect_object(self):
-        return (
-            self.x_pos,
-            self.y_pos,
-            self.size,
-            self.size,
-        )
+        self.rect = self.image.get_rect()
 
     def get_image_rect_object(self):
         return (
@@ -249,6 +267,7 @@ def main():
             "empty": (2, 1),
         },
     )
+    players = [Player(5, (0, 1), BOARD_POS)]
 
     """
     num_in_row, num_in_column, x_pos, y_pos
@@ -289,6 +308,9 @@ def main():
 
         main_board.draw_lines(window, main_board.rows)
         main_board.draw_self(window)
+
+        for player in players:
+            player.draw_self(window)
 
         pygame.display.flip()
 
