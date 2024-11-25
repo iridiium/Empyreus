@@ -1,5 +1,5 @@
 import pygame
-import copy
+import heapq
 from random import randint
 
 
@@ -118,7 +118,7 @@ class Board:
         self.spritesheet = spritesheet
         self.tile_arrangement, self.tile_types = self.arrange_tiles(tiles)
 
-        self.board = [
+        self.rows = [
             [
                 Tile(
                     i * (self.tile_size + self.tile_border_size) + self.x_pos,
@@ -153,12 +153,23 @@ class Board:
         return iter(result), iter(tile_types)
 
     def draw_lines(self, window, board):
+        graph = {}
         visited = [[tile.type == "empty" for tile in row] for row in board]
 
         def dfs(i, j, last_i, last_j):
             visited[i][j] = True
 
             if last_i is not None and last_j is not None:
+                if (last_i, last_j) in graph:
+                    graph[(last_i, last_j)].append((i, j))
+                else:
+                    graph[(last_i, last_j)] = [(i, j)]
+
+                if (i, j) in graph:
+                    graph[(i, j)].append((last_i, last_j))
+                else:
+                    graph[(i, j)] = [(last_i, last_j)]
+
                 pygame.draw.line(
                     window,
                     WHITE,
@@ -190,10 +201,10 @@ class Board:
                     num_islands += 1
                     dfs(i, j, None, None)
 
-        return num_islands
+        return graph, num_islands
 
     def draw_self(self, window):
-        for j, row in enumerate(self.board):
+        for j, row in enumerate(self.rows):
             for i, tile in enumerate(row):
                 colour = tile.colour
                 image_rect_object = tile.get_image_rect_object()
@@ -276,7 +287,7 @@ def main():
         window.fill(WHITE)
         window.blit(bg.image, bg.rect)
 
-        main_board.draw_lines(window, main_board.board)
+        main_board.draw_lines(window, main_board.rows)
         main_board.draw_self(window)
 
         pygame.display.flip()
