@@ -2,6 +2,13 @@ import pygame
 from random import randint
 
 
+# Helper functions
+def cycle(arr, start=0):
+    while True:
+        yield arr[start]
+        start = (start + 1) % len(arr)
+
+
 # Image classes
 class Background(pygame.sprite.Sprite):
     def __init__(self, image_file, location):
@@ -63,7 +70,7 @@ class Spritesheet:
 
 # Player class
 class Player(pygame.sprite.Sprite):
-    def __init__(self, number, pos):
+    def __init__(self, number, start_pos):
         super().__init__()
 
         self.tile_total_size = TILE_SIZE
@@ -72,7 +79,7 @@ class Player(pygame.sprite.Sprite):
         self.number = number
         self.image = pygame.image.load(f"tiny-spaceships/tiny_ship{number}.png")
 
-        self.move(pos)
+        self.move(start_pos)
 
     def draw(self, window):
         window.blit(self.image, self.rect)
@@ -94,13 +101,14 @@ class Player(pygame.sprite.Sprite):
 # Board classes
 class Tile:
 
-    def __init__(self, pos, colour, image, type, size, border_size):
+    def __init__(self, pos, colour, image, type, base_size, border_size, size):
         self.pos = pos
         self.colour = colour
         self.image = image
         self.type = type
-        self.size = size
+        self.base_size = base_size
         self.border_size = border_size
+        self.size = size
 
         self.centre_pos = (
             self.pos[0] + self.size / 2,
@@ -144,20 +152,21 @@ class Board:
         self.tile_border_size = tile_border_size
         self.tile_size = tile_size
         self.spritesheet = spritesheet
-        self.tile_order, self.tile_types = self.create_rows(tiles)
+        self.tile_order, self.tile_types = self.order_tiles(tiles)
 
         self.rows = [
             [
                 Tile(
-                    (
+                    pos=(
                         i * tile_size + self.pos[0],
                         j * tile_size + self.pos[1],
                     ),
-                    tile_colour,
-                    next(self.tile_order),
-                    next(self.tile_types),
-                    tile_base_size,
-                    tile_border_size,
+                    colour=tile_colour,
+                    image=next(self.tile_order),
+                    type=next(self.tile_types),
+                    base_size=tile_base_size,
+                    border_size=tile_border_size,
+                    size=tile_size,
                 )
                 for i in range(self.size[0])
             ]
@@ -167,7 +176,7 @@ class Board:
     def get_type_at_pos_on_board(self, pos_on_board):
         return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
 
-    def create_rows(self, tiles):
+    def order_tiles(self, tiles):
         result = []
         tile_types = []
 
@@ -332,13 +341,15 @@ def main():
         mouse_pos = pygame.mouse.get_pos()
         pos_on_board = coord_to_board_pos(mouse_pos)
 
-        current_player = players[0]
+        turn = cycle(players)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 print(main_board.get_type_at_pos_on_board(pos_on_board))
+                current_player = next(turn)
+                print(current_player)
                 current_player.move(pos_on_board)
                 print(pos_on_board)
 
