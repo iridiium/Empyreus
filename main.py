@@ -1,5 +1,4 @@
 import pygame
-import heapq
 from random import randint
 
 
@@ -26,7 +25,7 @@ class Spritesheet:
 
         self.names = names
 
-    def get_sprite_by_position(self, sprite_pos):
+    def get_sprite_by_pos(self, sprite_pos):
         return self.image.subsurface(
             pygame.Rect(
                 sprite_pos[0] * self.sprite_size[0],
@@ -39,7 +38,7 @@ class Spritesheet:
     def get_sprite_by_name(self, sprite_name):
         sprite_pos = self.names[sprite_name]
 
-        return self.get_sprite_by_position(sprite_pos)
+        return self.get_sprite_by_pos(sprite_pos)
 
     def get_sprite_rect(self, pos):
         return pygame.Rect(
@@ -64,49 +63,62 @@ class Spritesheet:
 
 # Player class
 class Player(pygame.sprite.Sprite):
-    def __init__(self, number, pos, board_pos):
+    def __init__(self, number, pos):
         super().__init__()
 
-        self.tile_total_size = TILE_TOTAL_SIZE
+        self.tile_total_size = TILE_SIZE
+        self.board_pos = BOARD_POS
 
         self.number = number
         self.image = pygame.image.load(f"tiny-spaceships/tiny_ship{number}.png")
 
-        self.rect = self.image.get_rect()
-        self.rect.left, self.rect.top = tuple(
-            (
-                board_pos[i]
-                + pos[i] * self.tile_total_size
-                + (self.tile_total_size - self.image.get_size()[i]) / 2
-                for i in range(2)
-            )
-        )
+        self.move(pos)
 
-    def draw_self(self, window):
+    def draw(self, window):
         window.blit(self.image, self.rect)
+
+    def move(self, new_pos):
+        self.rect = self.image.get_rect()
+        self.rect.left = (
+            self.board_pos[0]
+            + new_pos[0] * self.tile_total_size
+            + (self.tile_total_size - self.image.get_width()) / 2
+        )
+        self.rect.top = (
+            self.board_pos[1]
+            + new_pos[1] * self.tile_total_size
+            + (self.tile_total_size - self.image.get_height()) / 2
+        )
 
 
 # Board classes
 class Tile:
 
-    def __init__(self, x_pos, y_pos, colour, image, type, size, border_size):
-        self.x_pos = x_pos
-        self.y_pos = y_pos
+    def __init__(self, pos, colour, image, type, size, border_size):
+        self.pos = pos
         self.colour = colour
         self.image = image
         self.type = type
         self.size = size
         self.border_size = border_size
 
-        self.centre_x_pos = self.x_pos + self.size / 2
-        self.centre_y_pos = self.y_pos + self.size / 2
+        self.centre_pos = (
+            self.pos[0] + self.size / 2,
+            self.pos[1] + self.size / 2,
+        )
 
         self.rect = self.image.get_rect()
 
-    def get_image_rect_object(self):
+    def get_colour(self):
+        return self.colour
+
+    def get_type(self):
+        return self.type
+
+    def get_rect_in_board(self):
         return (
-            self.x_pos + self.border_size / 2,
-            self.y_pos + self.border_size / 2,
+            self.pos[0] + self.border_size / 2,
+            self.pos[1] + self.border_size / 2,
             self.size,
             self.size,
         )
@@ -116,43 +128,46 @@ class Board:
 
     def __init__(
         self,
-        num_in_row,
-        num_in_column,
-        x_pos,
-        y_pos,
+        size,
+        pos,
         tile_colour,
-        tile_size,
+        tile_base_size,
         tile_border_size,
+        tile_size,
         spritesheet,
         tiles,
     ):
-        self.num_in_row = num_in_row
-        self.num_in_column = num_in_column
-        self.x_pos = x_pos
-        self.y_pos = y_pos
+        self.size = size
+        self.pos = pos
         self.tile_colour = tile_colour
-        self.tile_size = tile_size
+        self.tile_base_size = tile_base_size
         self.tile_border_size = tile_border_size
+        self.tile_size = tile_size
         self.spritesheet = spritesheet
-        self.tile_arrangement, self.tile_types = self.arrange_tiles(tiles)
+        self.tile_order, self.tile_types = self.create_rows(tiles)
 
         self.rows = [
             [
                 Tile(
-                    i * (self.tile_size + self.tile_border_size) + self.x_pos,
-                    j * (self.tile_size + self.tile_border_size) + self.y_pos,
+                    (
+                        i * tile_size + self.pos[0],
+                        j * tile_size + self.pos[1],
+                    ),
                     tile_colour,
-                    next(self.tile_arrangement),
+                    next(self.tile_order),
                     next(self.tile_types),
-                    tile_size,
+                    tile_base_size,
                     tile_border_size,
                 )
-                for i in range(self.num_in_row)
+                for i in range(self.size[0])
             ]
-            for j in range(self.num_in_column)
+            for j in range(self.size[1])
         ]
 
-    def arrange_tiles(self, tiles):
+    def get_type_at_pos_on_board(self, pos_on_board):
+        return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
+
+    def create_rows(self, tiles):
         result = []
         tile_types = []
 
@@ -170,7 +185,7 @@ class Board:
 
         return iter(result), iter(tile_types)
 
-    def draw_lines(self, window, board):
+    def create_graph(self, window, board):
         graph = {}
         visited = [[tile.type == "empty" for tile in row] for row in board]
 
@@ -191,42 +206,48 @@ class Board:
                 pygame.draw.line(
                     window,
                     WHITE,
-                    (
-                        board[i][j].centre_x_pos,
-                        board[i][j].centre_y_pos,
-                    ),
-                    (
-                        board[last_i][last_j].centre_x_pos,
-                        board[last_i][last_j].centre_y_pos,
-                    ),
+                    board[i][j].centre_pos,
+                    board[last_i][last_j].centre_pos,
                 )
 
-            for k in range(i - 1, i + 2):
-                for l in range(j - 1, j + 2):
+            for m in range(i - 1, i + 2):
+                for n in range(j - 1, j + 2):
                     if (
-                        k >= 0
-                        and l >= 0
-                        and k < len(visited)
-                        and l < len(visited[0])
-                        and visited[k][l] == False
+                        m >= 0
+                        and n >= 0
+                        and m < len(visited)
+                        and n < len(visited[0])
+                        and visited[m][n] is False
                     ):
-                        dfs(k, l, i, j)
+                        dfs(m, n, i, j)
 
-        num_islands = 0
+        islands = []
         for i in range(len(board)):
             for j in range(len(board[0])):
-                if visited[i][j] == False:
-                    num_islands += 1
+                if visited[i][j] is False:
+                    islands.append([])
+
                     dfs(i, j, None, None)
 
-        return graph, num_islands
+        self.graph = graph
 
-    def draw_self(self, window):
+        return graph
+
+    def draw(self, window, pos):
         for j, row in enumerate(self.rows):
             for i, tile in enumerate(row):
-                colour = tile.colour
-                image_rect_object = tile.get_image_rect_object()
-                window.blit(tile.image, image_rect_object)
+                if i == pos[0] and j == pos[1]:
+                    colour = tile.get_colour()
+                    rect_object = tile.get_rect_in_board()
+
+                    pygame.draw.rect(
+                        window,
+                        colour,
+                        rect_object,
+                    )
+
+                image_rect = tile.get_rect_in_board()
+                window.blit(tile.image, image_rect)
 
 
 # Constants
@@ -238,17 +259,29 @@ WINDOW_SIZE = (800, 600)
 
 BOARD_SIZE = (5, 5)
 
-TILE_SIZE = 72
+TILE_BASE_SIZE = 72
 TILE_BORDER_SIZE = 8
-TILE_TOTAL_SIZE = TILE_SIZE + TILE_BORDER_SIZE
+
+TILE_SIZE = TILE_BASE_SIZE + TILE_BORDER_SIZE
 
 BOARD_POS = (
-    (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_TOTAL_SIZE - TILE_BORDER_SIZE) / 2,
-    (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_TOTAL_SIZE - TILE_BORDER_SIZE) / 2,
+    (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
+    (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
 )
 
 
 # Game loop
+def coord_to_board_pos(pos):
+    return (
+        int(
+            min(max((pos[0] - BOARD_POS[0]) // TILE_SIZE, 0), BOARD_SIZE[0] - 1)
+        ),
+        int(
+            min(max((pos[1] - BOARD_POS[1]) // TILE_SIZE, 0), BOARD_SIZE[1] - 1)
+        ),
+    )
+
+
 def main():
     pygame.init()
     window = pygame.display.set_mode(WINDOW_SIZE)
@@ -267,22 +300,17 @@ def main():
             "empty": (2, 1),
         },
     )
-    players = [Player(5, (0, 1), BOARD_POS)]
+    players = [Player(5, (0, 1)), Player(7, (0, 0))]
 
-    """
-    num_in_row, num_in_column, x_pos, y_pos
-    tile_colour, tile_size, tile_border_size
-    """
     main_board = Board(
-        BOARD_SIZE[0],
-        BOARD_SIZE[1],
-        BOARD_POS[0],
-        BOARD_POS[1],
-        GREY,
-        TILE_SIZE,
-        TILE_BORDER_SIZE,
-        planets,
-        {
+        size=BOARD_SIZE,
+        pos=BOARD_POS,
+        tile_colour=GREY,
+        tile_base_size=TILE_BASE_SIZE,
+        tile_border_size=TILE_BORDER_SIZE,
+        tile_size=TILE_SIZE,
+        spritesheet=planets,
+        tiles={
             "water": 3,
             "helium": 3,
             "ore": 3,
@@ -296,21 +324,28 @@ def main():
     while running:
         clock.tick(100)
 
-        pos = pygame.mouse.get_pos()
-        i, j = pos[0], pos[1]
+        window.fill(WHITE)
+        window.blit(bg.image, bg.rect)
+
+        main_board.create_graph(window, main_board.rows)
+
+        mouse_pos = pygame.mouse.get_pos()
+        pos_on_board = coord_to_board_pos(mouse_pos)
+
+        current_player = players[0]
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                print(main_board.get_type_at_pos_on_board(pos_on_board))
+                current_player.move(pos_on_board)
+                print(pos_on_board)
 
-        window.fill(WHITE)
-        window.blit(bg.image, bg.rect)
-
-        main_board.draw_lines(window, main_board.rows)
-        main_board.draw_self(window)
+        main_board.draw(window, pos_on_board)
 
         for player in players:
-            player.draw_self(window)
+            player.draw(window)
 
         pygame.display.flip()
 
