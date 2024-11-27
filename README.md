@@ -1,6 +1,4 @@
-# Battutia
+# Empyreus
 
-Named after [Ibn Battuta](https://en.wikipedia.org/wiki/Ibn_Battuta).
-
-- Space-themed board game for my Computer Science NEA.
+- Space-themed board game for my A-Level Computer Science NEA.
 - Heavily inspired by Caverna and Catan.
