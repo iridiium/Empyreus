@@ -1,16 +1,10 @@
 import pygame
-from random import randint
-
-
-# Helper functions
-def cycle(arr, start=0):
-    while True:
-        yield arr[start]
-        start = (start + 1) % len(arr)
+from random import choice, randint
 
 
 # Image classes
 class Background(pygame.sprite.Sprite):
+
     def __init__(self, image_file, location):
         super().__init__()
 
@@ -23,6 +17,7 @@ class Background(pygame.sprite.Sprite):
 
 
 class Spritesheet:
+
     def __init__(self, image_file, sprite_size, names):
         self.image = pygame.image.load(image_file)
         self.sprite_size = sprite_size
@@ -70,32 +65,49 @@ class Spritesheet:
 
 # Player class
 class Player(pygame.sprite.Sprite):
-    def __init__(self, number, start_pos):
+
+    def __init__(self, number, pos):
         super().__init__()
 
         self.tile_total_size = TILE_SIZE
         self.board_pos = BOARD_POS
 
         self.number = number
-        self.image = pygame.image.load(f"tiny-spaceships/tiny_ship{number}.png")
+        self.pos = pos
 
-        self.move(start_pos)
+        self.image = pygame.image.load(
+            f"./resources/images/tiny-spaceships/tiny_ship{number}.png"
+        )
+
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = self.get_rect_left_top(pos)
+
+    def get_pos(self):
+        return self.pos
 
     def draw(self, window):
         window.blit(self.image, self.rect)
 
-    def move(self, new_pos):
-        self.rect = self.image.get_rect()
-        self.rect.left = (
-            self.board_pos[0]
-            + new_pos[0] * self.tile_total_size
-            + (self.tile_total_size - self.image.get_width()) / 2
+    def get_rect_left_top(self, pos):
+        return (
+            (
+                self.board_pos[0]
+                + pos[0] * self.tile_total_size
+                + (self.tile_total_size - self.image.get_width()) / 2
+            ),
+            (
+                self.board_pos[1]
+                + pos[1] * self.tile_total_size
+                + (self.tile_total_size - self.image.get_height()) / 2
+            ),
         )
-        self.rect.top = (
-            self.board_pos[1]
-            + new_pos[1] * self.tile_total_size
-            + (self.tile_total_size - self.image.get_height()) / 2
-        )
+
+    def move(self, new_pos, last_pos):
+        if new_pos == last_pos or new_pos in board.get_neighbours(last_pos):
+            self.pos = new_pos
+            self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
+            return True
+        return False
 
 
 # Board classes
@@ -173,6 +185,16 @@ class Board:
             for j in range(self.size[1])
         ]
 
+        self.graph = self.create_graph(self.rows)
+
+    def get_random_planet_pos(self):
+        return choice(list(self.graph.keys()))
+
+    def get_neighbours(self, target_pos):
+        if target_pos in self.graph.keys():
+            return self.graph[target_pos]
+        return []
+
     def get_type_at_pos_on_board(self, pos_on_board):
         return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
 
@@ -194,30 +216,26 @@ class Board:
 
         return iter(result), iter(tile_types)
 
-    def create_graph(self, window, board):
+    def create_graph(self, rows):
         graph = {}
-        visited = [[tile.type == "empty" for tile in row] for row in board]
+        visited = [[tile.type == "empty" for tile in row] for row in rows]
 
         def dfs(i, j, last_i, last_j):
             visited[i][j] = True
 
             if last_i is not None and last_j is not None:
-                if (last_i, last_j) in graph:
-                    graph[(last_i, last_j)].append((i, j))
-                else:
-                    graph[(last_i, last_j)] = [(i, j)]
+                last_node = (last_j, last_i)
+                node = (j, i)
 
-                if (i, j) in graph:
-                    graph[(i, j)].append((last_i, last_j))
+                if last_node in graph:
+                    graph[last_node].append(node)
                 else:
-                    graph[(i, j)] = [(last_i, last_j)]
+                    graph[last_node] = [node]
 
-                pygame.draw.line(
-                    window,
-                    WHITE,
-                    board[i][j].centre_pos,
-                    board[last_i][last_j].centre_pos,
-                )
+                if node in graph:
+                    graph[node].append(last_node)
+                else:
+                    graph[node] = [last_node]
 
             for m in range(i - 1, i + 2):
                 for n in range(j - 1, j + 2):
@@ -231,8 +249,8 @@ class Board:
                         dfs(m, n, i, j)
 
         islands = []
-        for i in range(len(board)):
-            for j in range(len(board[0])):
+        for i in range(len(rows)):
+            for j in range(len(rows[0])):
                 if visited[i][j] is False:
                     islands.append([])
 
@@ -243,6 +261,19 @@ class Board:
         return graph
 
     def draw(self, window, pos):
+        drawn = []
+        for node, neighbours in self.graph.items():
+            for neighbour in neighbours:
+                if [neighbour, node] not in drawn:
+                    pygame.draw.line(
+                        window,
+                        WHITE,
+                        self.rows[node[1]][node[0]].centre_pos,
+                        self.rows[neighbour[1]][neighbour[0]].centre_pos,
+                    )
+
+                    drawn.append([node, neighbour])
+
         for j, row in enumerate(self.rows):
             for i, tile in enumerate(row):
                 if i == pos[0] and j == pos[1]:
@@ -278,6 +309,39 @@ BOARD_POS = (
     (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
 )
 
+PLANETS = Spritesheet(
+    "./resources/images/CelestialObjects/CelestialObjects_Planets.png",
+    (64, 64),
+    {
+        "water": (0, 0),
+        "helium": (0, 1),
+        "ore": (1, 0),
+        "carbon": (1, 1),
+        "antimatter": (2, 0),
+        "empty": (2, 1),
+    },
+)
+
+board = Board(
+    size=BOARD_SIZE,
+    pos=BOARD_POS,
+    tile_colour=GREY,
+    tile_base_size=TILE_BASE_SIZE,
+    tile_border_size=TILE_BORDER_SIZE,
+    tile_size=TILE_SIZE,
+    spritesheet=PLANETS,
+    tiles={
+        "water": 3,
+        "helium": 3,
+        "ore": 3,
+        "carbon": 3,
+        "antimatter": 3,
+        "empty": 10,
+    },
+)
+
+bg = Background("./resources/images/back_900x675.png", (0, 0))
+
 
 # Game loop
 def coord_to_board_pos(pos):
@@ -296,38 +360,8 @@ def main():
     window = pygame.display.set_mode(WINDOW_SIZE)
     clock = pygame.time.Clock()
 
-    bg = Background("back_900x675.png", (0, 0))
-    planets = Spritesheet(
-        "CelestialObjects/CelestialObjects_Planets.png",
-        (64, 64),
-        {
-            "water": (0, 0),
-            "helium": (0, 1),
-            "ore": (1, 0),
-            "carbon": (1, 1),
-            "antimatter": (2, 0),
-            "empty": (2, 1),
-        },
-    )
-    players = [Player(5, (0, 1)), Player(7, (0, 0))]
-
-    main_board = Board(
-        size=BOARD_SIZE,
-        pos=BOARD_POS,
-        tile_colour=GREY,
-        tile_base_size=TILE_BASE_SIZE,
-        tile_border_size=TILE_BORDER_SIZE,
-        tile_size=TILE_SIZE,
-        spritesheet=planets,
-        tiles={
-            "water": 3,
-            "helium": 3,
-            "ore": 3,
-            "carbon": 3,
-            "antimatter": 3,
-            "empty": 10,
-        },
-    )
+    players = [Player(7, board.get_random_planet_pos())]
+    current_player_idx = 0
 
     running = True
     while running:
@@ -336,24 +370,19 @@ def main():
         window.fill(WHITE)
         window.blit(bg.image, bg.rect)
 
-        main_board.create_graph(window, main_board.rows)
-
         mouse_pos = pygame.mouse.get_pos()
         pos_on_board = coord_to_board_pos(mouse_pos)
-
-        turn = cycle(players)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                print(main_board.get_type_at_pos_on_board(pos_on_board))
-                current_player = next(turn)
-                print(current_player)
-                current_player.move(pos_on_board)
-                print(pos_on_board)
+                players[current_player_idx].move(
+                    pos_on_board, players[current_player_idx].get_pos()
+                )
+                current_player_idx = (current_player_idx + 1) % len(players)
 
-        main_board.draw(window, pos_on_board)
+        board.draw(window, pos_on_board)
 
         for player in players:
             player.draw(window)
