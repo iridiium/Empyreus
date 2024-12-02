@@ -1,4 +1,6 @@
 import pygame
+
+from collections import deque
 from random import randint, choice
 
 
@@ -24,6 +26,9 @@ class Board:
         self.spritesheet = spritesheet
         self.tile_order, self.tile_types = self.order_tiles(tiles)
 
+        self.num_planets = sum(
+            list(filter(lambda num: num > 0, tiles.values()))
+        )
         self.tile_size = self.tile_base_size + self.tile_border_size
 
         self.rows = [
@@ -52,35 +57,6 @@ class Board:
     def get_tile_size(self):
         return self.tile_size
 
-    def get_random_planet_pos(self):
-        return choice(list(self.graph))
-
-    def get_neighbours(self, target_pos):
-        if target_pos in self.graph:
-            return self.graph[target_pos]
-        return []
-
-    def get_type_at_pos_on_board(self, pos_on_board):
-        return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
-
-    def order_tiles(self, tiles):
-        result = []
-        tile_types = []
-
-        for tile_type, tile_amount in tiles.items():
-            for _ in range(tile_amount):
-                target = randint(0, len(result))
-                result.insert(
-                    target,
-                    self.spritesheet.get_sprite_by_name(tile_type),
-                )
-                tile_types.insert(
-                    target,
-                    tile_type,
-                )
-
-        return iter(result), iter(tile_types)
-
     def create_graph(self, rows):
         graph = {}
         visited = [[tile.type == "empty" for tile in row] for row in rows]
@@ -88,10 +64,10 @@ class Board:
         def dfs(i, j, last_i, last_j):
             visited[i][j] = True
 
-            if last_i is not None and last_j is not None:
-                last_node = (last_j, last_i)
-                node = (j, i)
+            last_node = (last_j, last_i)
+            node = (j, i)
 
+            if last_i is not None and last_j is not None:
                 if last_node in graph:
                     graph[last_node].append(node)
                 else:
@@ -107,8 +83,8 @@ class Board:
                     if (
                         m >= 0
                         and n >= 0
-                        and m < len(visited)
-                        and n < len(visited[0])
+                        and m < self.size[1]
+                        and n < self.size[0]
                         and visited[m][n] is False
                     ):
                         dfs(m, n, i, j)
@@ -153,6 +129,89 @@ class Board:
 
                 image_rect = tile.get_rect_in_board()
                 window.blit(tile.image, image_rect)
+
+    def get_nodes_adjacent_to(self, pos, dist=1):
+        neighbours = []
+
+        for i in range(pos[1] - 1, pos[1] + 2):
+            for j in range(pos[0] - 1, pos[0] + 2):
+                if (
+                    i >= 0
+                    and j >= 0
+                    and i < len(self.size[1])
+                    and j < len(self.size[0])
+                ):
+                    neighbours.append((j, i))
+
+        if dist > 1:
+            for neighbour in neighbours:
+                neighbours.extend(get_nodes_adjacent_to_(neighbour, dist - 1))
+
+        return neighbours
+
+    def get_nodes_connected_to(self, pos, dist=1):
+        neighbours = []
+        if pos in self.graph:
+            neighbours.extend(self.graph[pos])
+
+        if dist > 1:
+            for neighbour in neighbours:
+                neighbours.extend(get_nodes_connected_to(neighbour, dist - 1))
+
+        return neighbours
+
+    def get_shortest_path(self, start_pos, end_pos):
+        queue = deque([start_pos])
+        visited = set([start_pos])
+        parent = {start_pos: None}
+
+        while queue:
+            node = queue.popleft()
+
+            if node == end_pos:
+                path = []
+                while node is not None:
+                    path.insert(node, 0)
+                    node = parent[node]
+                return path
+
+        for neighbour in graph[node]:
+            if neighbour not in visited:
+                visited.add(neighbour)
+                parent[neighbour] = node
+                queue.append(neighbour)
+
+        return []
+
+    def get_random_planet_pos(self):
+        return choice(list(self.graph))
+
+    def get_type_at_pos_on_board(self, pos_on_board):
+        return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
+
+    def order_tiles(self, tiles):
+        result = []
+        tile_types = []
+        total = 0
+
+        for tile_type, tile_amount in tiles.items():
+            if tile_amount < 0:
+                tile_amount = self.size[0] * self.size[1] - total
+            else:
+                total += tile_amount
+
+            for _ in range(tile_amount):
+                target = randint(0, len(result))
+                result.insert(
+                    target,
+                    self.spritesheet.get_sprite_by_name(tile_type),
+                )
+                tile_types.insert(
+                    target,
+                    tile_type,
+                )
+
+        return iter(result), iter(tile_types)
 
 
 class Tile:

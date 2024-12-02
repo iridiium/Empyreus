@@ -50,7 +50,7 @@ board = Board(
         "ore": 3,
         "carbon": 3,
         "antimatter": 3,
-        "empty": 10,
+        "empty": -1,
     },
 )
 
@@ -58,23 +58,29 @@ bg = Background("./resources/images/back_900x675.png", (0, 0))
 
 
 # Game loop
-def coord_to_board_pos(pos):
-    return (
-        int(
-            min(max((pos[0] - BOARD_POS[0]) // TILE_SIZE, 0), BOARD_SIZE[0] - 1)
-        ),
-        int(
-            min(max((pos[1] - BOARD_POS[1]) // TILE_SIZE, 0), BOARD_SIZE[1] - 1)
-        ),
-    )
-
-
 def main():
+    def coord_to_board_pos(pos):
+        return (
+            int(
+                min(
+                    max((pos[0] - BOARD_POS[0]) // TILE_SIZE, 0),
+                    BOARD_SIZE[0] - 1,
+                )
+            ),
+            int(
+                min(
+                    max((pos[1] - BOARD_POS[1]) // TILE_SIZE, 0),
+                    BOARD_SIZE[1] - 1,
+                )
+            ),
+        )
+
     pygame.init()
     window = pygame.display.set_mode(WINDOW_SIZE)
     clock = pygame.time.Clock()
 
     players = [Player(7, board.get_random_planet_pos(), board)]
+
     current = 0
 
     running = True

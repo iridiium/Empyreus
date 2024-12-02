@@ -38,9 +38,7 @@ class Player(pygame.sprite.Sprite):
         )
 
     def move(self, new_pos, last_pos):
-        if new_pos == last_pos or new_pos in self.board.get_neighbours(
-            last_pos
-        ):
+        if new_pos in self.board.get_nodes_connected_to(last_pos):
             self.pos = new_pos
             self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
             return True
