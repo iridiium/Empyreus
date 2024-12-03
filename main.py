@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 
 from random import randrange
 
@@ -19,6 +20,7 @@ BOARD_SIZE = (6, 6)
 TILE_BASE_SIZE = 72
 TILE_BORDER_SIZE = 8
 TILE_SIZE = TILE_BASE_SIZE + TILE_BORDER_SIZE
+FONT_SIZE = TILE_SIZE / 4
 
 BOARD_POS = (
     (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
@@ -63,32 +65,22 @@ bg = Background("./resources/images/back_900x675.png", (0, 0))
 
 # Game loop
 def main():
-    def coord_to_board_pos(pos):
-        return (
-            int(
-                min(
-                    max((pos[0] - BOARD_POS[0]) // TILE_SIZE, 0),
-                    BOARD_SIZE[0] - 1,
-                )
-            ),
-            int(
-                min(
-                    max((pos[1] - BOARD_POS[1]) // TILE_SIZE, 0),
-                    BOARD_SIZE[1] - 1,
-                )
-            ),
-        )
-
     pygame.init()
+
+    FONT = pygame.freetype.Font(
+        "resources/fonts/Roboto/Roboto-Regular.ttf", FONT_SIZE
+    )
+
     window = pygame.display.set_mode(WINDOW_SIZE)
     clock = pygame.time.Clock()
 
     players = [
-        Player(randrange(1, 10), board.get_random_planet_pos(), board)
-        for _ in range(NUM_PLAYERS)
+        Player(2, board.get_random_planet_pos(), board),
+        Player(3, board.get_random_planet_pos(), board),
     ]
 
-    current = 0
+    total_turns = 0
+    current_turn = 0
 
     running = True
     while running:
@@ -98,19 +90,32 @@ def main():
         window.blit(bg.image, bg.rect)
 
         mouse_pos = pygame.mouse.get_pos()
-        pos_on_board = coord_to_board_pos(mouse_pos)
+        pos_on_board = board.coord_to_board_pos(mouse_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                players[current].move(pos_on_board, players[current].get_pos())
-                current = (current + 1) % len(players)
+                valid_move = players[current_turn].move(
+                    pos_on_board, players[current_turn].get_pos()
+                )
+                if valid_move:
+                    current_turn = (current_turn + 1) % len(players)
+                    total_turns += 1
+                    finished_turn = True
 
         board.draw(window, pos_on_board)
 
         for player in players:
             player.draw(window)
+
+        FONT.render_to(window, (10, 10), f"Turns elapsed: {total_turns}", WHITE)
+        FONT.render_to(
+            window,
+            (10, 10 + TILE_BORDER_SIZE + FONT_SIZE),
+            f"Player {current_turn + 1}'s turn.",
+            WHITE,
+        )
 
         pygame.display.flip()
 

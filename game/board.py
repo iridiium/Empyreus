@@ -57,6 +57,22 @@ class Board:
     def get_tile_size(self):
         return self.tile_size
 
+    def coord_to_board_pos(self, coord):
+        return (
+            int(
+                min(
+                    max((coord[0] - self.pos[0]) // self.tile_size, 0),
+                    self.size[0] - 1,
+                )
+            ),
+            int(
+                min(
+                    max((coord[1] - self.pos[1]) // self.tile_size, 0),
+                    self.size[1] - 1,
+                )
+            ),
+        )
+
     def create_graph(self, rows):
         graph = {}
         visited = [[tile.type == "empty" for tile in row] for row in rows]
