@@ -1,5 +1,7 @@
 import pygame
 
+from random import randrange
+
 from game.background import Background
 from game.board import Board
 from game.player import Player
@@ -12,7 +14,7 @@ WHITE = (255, 255, 255)
 
 WINDOW_SIZE = (800, 600)
 
-BOARD_SIZE = (5, 5)
+BOARD_SIZE = (6, 6)
 
 TILE_BASE_SIZE = 72
 TILE_BORDER_SIZE = 8
@@ -22,6 +24,8 @@ BOARD_POS = (
     (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
     (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
 )
+
+NUM_PLAYERS = 2
 
 PLANETS = Spritesheet(
     "./resources/images/CelestialObjects/CelestialObjects_Planets.png",
@@ -45,11 +49,11 @@ board = Board(
     tile_border_size=TILE_BORDER_SIZE,
     spritesheet=PLANETS,
     tiles={
-        "water": 3,
-        "helium": 3,
-        "ore": 3,
-        "carbon": 3,
-        "antimatter": 3,
+        "water": 4,
+        "helium": 4,
+        "ore": 4,
+        "carbon": 4,
+        "antimatter": 4,
         "empty": -1,
     },
 )
@@ -79,7 +83,10 @@ def main():
     window = pygame.display.set_mode(WINDOW_SIZE)
     clock = pygame.time.Clock()
 
-    players = [Player(7, board.get_random_planet_pos(), board)]
+    players = [
+        Player(randrange(1, 10), board.get_random_planet_pos(), board)
+        for _ in range(NUM_PLAYERS)
+    ]
 
     current = 0
 

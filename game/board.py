@@ -90,12 +90,27 @@ class Board:
                         dfs(m, n, i, j)
 
         islands = []
-        for i in range(len(rows)):
-            for j in range(len(rows[0])):
+        for i in range(self.size[1]):
+            for j in range(self.size[0]):
                 if visited[i][j] is False:
                     islands.append([])
 
                     dfs(i, j, None, None)
+
+        self.graph = graph
+
+        for node in graph:
+            for neighbour in self.get_adjacent_nodes(node):
+                if self.get_shortest_distance(node, neighbour) > 3:
+                    if neighbour in graph:
+                        graph[neighbour].append(node)
+                    else:
+                        graph[neighbour] = [node]
+
+                    if node in graph:
+                        graph[node].append(neighbour)
+                    else:
+                        graph[node] = [neighbour]
 
         self.graph = graph
 
@@ -130,58 +145,48 @@ class Board:
                 image_rect = tile.get_rect_in_board()
                 window.blit(tile.image, image_rect)
 
-    def get_nodes_adjacent_to(self, pos, dist=1):
+    def get_adjacent_nodes(self, pos, dist=1):
         neighbours = []
 
         for i in range(pos[1] - 1, pos[1] + 2):
             for j in range(pos[0] - 1, pos[0] + 2):
-                if (
-                    i >= 0
-                    and j >= 0
-                    and i < len(self.size[1])
-                    and j < len(self.size[0])
-                ):
+                if i >= 0 and j >= 0 and i < self.size[1] and j < self.size[0]:
                     neighbours.append((j, i))
 
         if dist > 1:
             for neighbour in neighbours:
-                neighbours.extend(get_nodes_adjacent_to_(neighbour, dist - 1))
+                neighbours.extend(get_adjacent_nodes(neighbour, dist - 1))
 
         return neighbours
 
-    def get_nodes_connected_to(self, pos, dist=1):
+    def get_connected_nodes(self, node, dist=1):
         neighbours = []
-        if pos in self.graph:
-            neighbours.extend(self.graph[pos])
+        if node in self.graph:
+            neighbours.extend(self.graph[node])
 
         if dist > 1:
             for neighbour in neighbours:
-                neighbours.extend(get_nodes_connected_to(neighbour, dist - 1))
+                neighbours.extend(get_connected_nodes(neighbour, dist - 1))
 
         return neighbours
 
-    def get_shortest_path(self, start_pos, end_pos):
-        queue = deque([start_pos])
-        visited = set([start_pos])
-        parent = {start_pos: None}
+    def get_shortest_distance(self, start, end):
+        queue = deque([start])
+        dist = {start: 0}
 
+        # DFS
         while queue:
-            node = queue.popleft()
+            current = queue.popleft()
 
-            if node == end_pos:
-                path = []
-                while node is not None:
-                    path.insert(node, 0)
-                    node = parent[node]
-                return path
+            if current == end:
+                return dist[current]
 
-        for neighbour in graph[node]:
-            if neighbour not in visited:
-                visited.add(neighbour)
-                parent[neighbour] = node
-                queue.append(neighbour)
+            for neighbour in self.get_connected_nodes(current):
+                if neighbour not in dist:
+                    queue.append(neighbour)
+                    dist[neighbour] = dist[current] + 1
 
-        return []
+        return -1
 
     def get_random_planet_pos(self):
         return choice(list(self.graph))
