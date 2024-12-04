@@ -49,7 +49,7 @@ class Board:
             for j in range(self.size[1])
         ]
 
-        self.graph = self.create_graph(self.rows)
+        self.graph, self.num_islands = self.create_graph(self.rows)
 
     def get_pos(self):
         return self.pos
@@ -105,11 +105,11 @@ class Board:
                     ):
                         dfs(m, n, i, j)
 
-        islands = []
+        num_islands = 0
         for i in range(self.size[1]):
             for j in range(self.size[0]):
                 if visited[i][j] is False:
-                    islands.append([])
+                    num_islands += 1
 
                     dfs(i, j, None, None)
 
@@ -128,9 +128,7 @@ class Board:
                     else:
                         graph[node] = [neighbour]
 
-        self.graph = graph
-
-        return graph
+        return graph, num_islands
 
     def draw(self, window, pos):
         drawn = []

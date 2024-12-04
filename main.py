@@ -5,7 +5,7 @@ from random import randrange
 
 from game.background import Background
 from game.board import Board
-from game.player import Player
+from game.player import Player, PlayerList
 from game.spritesheet import Spritesheet
 
 # Constants
@@ -74,13 +74,12 @@ def main():
     window = pygame.display.set_mode(WINDOW_SIZE)
     clock = pygame.time.Clock()
 
-    players = [
-        Player(2, board.get_random_planet_pos(), board),
-        Player(3, board.get_random_planet_pos(), board),
-    ]
+    players = PlayerList(board)
+    players.add("Anthony", 1)
+    players.add("Bert", 2)
+    players.add("Cuthbert", 3)
 
     total_turns = 0
-    current_turn = 0
 
     running = True
     while running:
@@ -96,24 +95,23 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                valid_move = players[current_turn].move(
-                    pos_on_board, players[current_turn].get_pos()
+                valid_move = players.get_current_turn_taker().move(
+                    pos_on_board, players.get_current_turn_taker().get_pos()
                 )
                 if valid_move:
-                    current_turn = (current_turn + 1) % len(players)
+                    players.shift_current_turn_taker()
                     total_turns += 1
-                    finished_turn = True
 
         board.draw(window, pos_on_board)
 
-        for player in players:
+        for player in players.get_list():
             player.draw(window)
 
         FONT.render_to(window, (10, 10), f"Turns elapsed: {total_turns}", WHITE)
         FONT.render_to(
             window,
             (10, 10 + TILE_BORDER_SIZE + FONT_SIZE),
-            f"Player {current_turn + 1}'s turn.",
+            f"Player {players.get_current_turn_taker().get_number() + 1}'s turn.",
             WHITE,
         )
 
