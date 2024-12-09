@@ -23,12 +23,6 @@ class Player(pygame.sprite.Sprite):
     def get_pos(self):
         return self.pos
 
-    def draw(self, window):
-        window.blit(self.image, self.rect)
-
-    def get_ship_image(self, image_number):
-        return f"./resources/images/tiny-spaceships/tiny_ship{image_number}.png"
-
     def get_rect_left_top(self, pos):
         return (
             (
@@ -42,6 +36,12 @@ class Player(pygame.sprite.Sprite):
                 + (self.board.get_tile_size() - self.image.get_height()) / 2
             ),
         )
+
+    def get_ship_image(self, image_number):
+        return f"./resources/images/tiny-spaceships/tiny_ship{image_number}.png"
+
+    def draw(self, window):
+        window.blit(self.image, self.rect)
 
     def move(self, new_pos, last_pos):
         if new_pos in self.board.get_connected_nodes(last_pos):
