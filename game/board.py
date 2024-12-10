@@ -1,9 +1,9 @@
 import pygame
 
-from collections import deque
+from collections import defaultdict, deque
 from random import randint, choice
 
-from .helper import merge_sort
+from .helper import calculate_distance, merge_sort
 
 
 class Board:
@@ -76,102 +76,98 @@ class Board:
         )
 
     def create_graph(self, rows):
-        graph = {}
-        visited = [[tile.type == "empty" for tile in row] for row in rows]
+        graph = defaultdict(set)
+        visited = [[tile.get_type() == "empty" for tile in row] for row in rows]
 
-        def dfs(i, j, last_i, last_j, island):
-            visited[i][j] = True
-
+        def dfs(i, j, last_i, last_j, total_targets):
             last_node = (last_j, last_i)
             node = (j, i)
 
-            island.append(node)
+            visited[i][j] = True
+            if last_node != (-1, -1):
+                graph[last_node].add(node)
+                graph[node].add(last_node)
 
-            if last_node != (None, None):
-                if last_node in graph:
-                    graph[last_node].append(node)
-                else:
-                    graph[last_node] = [node]
-
-                if node in graph:
-                    graph[node].append(last_node)
-                else:
-                    graph[node] = [last_node]
+            total_targets.append(node)
 
             for m in range(i - 1, i + 2):
                 for n in range(j - 1, j + 2):
                     if (
-                        m >= 0
-                        and n >= 0
-                        and m < self.size[1]
-                        and n < self.size[0]
-                        and visited[m][n] is False
+                        0 <= m < self.size[1]
+                        and 0 <= n < self.size[0]
+                        and not visited[m][n]
                     ):
-                        dfs(m, n, i, j, island)
+                        dfs(m, n, i, j, total_targets)
+
+            return
 
         islands = []
         for i in range(self.size[1]):
             for j in range(self.size[0]):
-                if visited[i][j] is False:
+                if not visited[i][j]:
                     island = []
-                    dfs(i, j, None, None, island)
+                    dfs(i, j, -1, -1, island)
                     islands.append(island)
+
+        islands = merge_sort(islands, lambda a, b: len(a) > len(b))
 
         self.graph = graph
 
-        print(islands)
-        print(merge_sort(islands))
+        if len(islands) > 1:
+            mainland, *isles = islands
+
+            for isle in isles:
+                for planet in isle:
+                    distances = defaultdict(int)
+                    for next_planet in mainland:
+                        distances[next_planet] = calculate_distance(
+                            planet, next_planet
+                        )
+
+                    print(distances)
 
         for node in graph:
             for neighbour in self.get_adjacent_nodes(node):
-                if self.get_shortest_distance(node, neighbour) > 3:
-                    if neighbour in graph:
-                        graph[neighbour].append(node)
-                    else:
-                        graph[neighbour] = [node]
-
-                    if node in graph:
-                        graph[node].append(neighbour)
-                    else:
-                        graph[node] = [neighbour]
+                if self.get_shortest_connected_distance(node, neighbour) > 3:
+                    graph[neighbour].add(node)
+                    graph[node].add(neighbour)
 
         return graph, islands
 
     def draw(self, window, pos):
-        drawn = []
+        drawn = set()
+
         for node, neighbours in self.graph.items():
             for neighbour in neighbours:
-                if [neighbour, node] not in drawn:
+                edge = frozenset([node, neighbour])
+                if edge not in drawn:
                     pygame.draw.line(
                         window,
                         self.line_colour,
-                        self.rows[node[1]][node[0]].centre_pos,
-                        self.rows[neighbour[1]][neighbour[0]].centre_pos,
+                        self.rows[node[1]][node[0]].get_centre_pos(),
+                        self.rows[neighbour[1]][neighbour[0]].get_centre_pos(),
                     )
 
-                    drawn.append([node, neighbour])
+                    drawn.add(edge)
 
         for j, row in enumerate(self.rows):
             for i, tile in enumerate(row):
-                if i == pos[0] and j == pos[1]:
-                    colour = tile.get_colour()
-                    rect_object = tile.get_rect_in_board()
-
+                if (i, j) == pos:
                     pygame.draw.rect(
                         window,
-                        colour,
-                        rect_object,
+                        tile.get_colour(),
+                        tile.get_rect_in_board(),
                     )
 
                 image_rect = tile.get_rect_in_board()
-                window.blit(tile.image, image_rect)
+                window.blit(tile.get_image(), image_rect)
 
     def get_adjacent_nodes(self, pos, dist=1):
         neighbours = []
 
         for i in range(pos[1] - 1, pos[1] + 2):
             for j in range(pos[0] - 1, pos[0] + 2):
-                if i >= 0 and j >= 0 and i < self.size[1] and j < self.size[0]:
+                if 0 <= i < self.size[1] and 0 <= j < self.size[0]:
                     neighbours.append((j, i))
 
         if dist > 1:
@@ -191,11 +187,14 @@ class Board:
 
         return neighbours
 
-    def get_shortest_distance(self, start, end):
+    def get_shortest_connected_distance(self, start, end):
+        if start == end:
+            return 0
+
         queue = deque([start])
         dist = {start: 0}
 
-        # DFS
+        # BFS
         while queue:
             current = queue.popleft()
 
@@ -259,8 +258,14 @@ class Tile:
 
         self.rect = self.image.get_rect()
 
+    def get_centre_pos(self):
+        return self.centre_pos
+
     def get_colour(self):
         return self.colour
+
+    def get_image(self):
+        return self.image
 
     def get_type(self):
         return self.type
