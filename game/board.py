@@ -3,6 +3,8 @@ import pygame
 from collections import deque
 from random import randint, choice
 
+from .helper import merge_sort
+
 
 class Board:
 
@@ -77,13 +79,15 @@ class Board:
         graph = {}
         visited = [[tile.type == "empty" for tile in row] for row in rows]
 
-        def dfs(i, j, last_i, last_j):
+        def dfs(i, j, last_i, last_j, island):
             visited[i][j] = True
 
             last_node = (last_j, last_i)
             node = (j, i)
 
-            if last_i is not None and last_j is not None:
+            island.append(node)
+
+            if last_node != (None, None):
                 if last_node in graph:
                     graph[last_node].append(node)
                 else:
@@ -103,17 +107,20 @@ class Board:
                         and n < self.size[0]
                         and visited[m][n] is False
                     ):
-                        dfs(m, n, i, j)
+                        dfs(m, n, i, j, island)
 
-        num_islands = 0
+        islands = []
         for i in range(self.size[1]):
             for j in range(self.size[0]):
                 if visited[i][j] is False:
-                    num_islands += 1
-
-                    dfs(i, j, None, None)
+                    island = []
+                    dfs(i, j, None, None, island)
+                    islands.append(island)
 
         self.graph = graph
+
+        print(islands)
+        print(merge_sort(islands))
 
         for node in graph:
             for neighbour in self.get_adjacent_nodes(node):
@@ -128,7 +135,7 @@ class Board:
                     else:
                         graph[node] = [neighbour]
 
-        return graph, num_islands
+        return graph, islands
 
     def draw(self, window, pos):
         drawn = []
