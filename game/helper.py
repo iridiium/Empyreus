@@ -1,9 +1,8 @@
-def calculate_distance(coord1, coord2):
-    return round(
-        (((coord2[0] - coord1[0]) ** 2) + ((coord2[1] - coord1[1]) ** 2))
-        ** 0.5,
-        2,
-    )
+from math import sqrt
+
+
+def find_dist(coord1, coord2):
+    return sqrt(((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2))
 
 
 def merge_sort(arr, key):

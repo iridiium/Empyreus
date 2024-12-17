@@ -89,20 +89,20 @@ def main():
         window.blit(bg.image, bg.rect)
 
         mouse_pos = pygame.mouse.get_pos()
-        pos_on_board = board.coord_to_board_pos(mouse_pos)
+        board_pos = board.coord_to_board_pos(mouse_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                valid_move = players.get_current_turn_taker().move(
-                    pos_on_board, players.get_current_turn_taker().get_pos()
-                )
+                curr_player = player.get_curr
+                valid_move = curr_player.move(board_pos, curr_player.get_pos())
+
                 if valid_move:
-                    players.shift_current_turn_taker()
+                    players.cycle_curr()
                     total_turns += 1
 
-        board.draw(window, pos_on_board)
+        board.draw(window, board_pos)
 
         for player in players.get_list():
             player.draw(window)
@@ -111,7 +111,7 @@ def main():
         FONT.render_to(
             window,
             (10, 10 + TILE_BORDER_SIZE + FONT_SIZE),
-            f"Player {players.get_current_turn_taker().get_number() + 1}'s turn.",
+            f"Player {players.get_curr().get_num() + 1}'s turn.",
             WHITE,
         )
 

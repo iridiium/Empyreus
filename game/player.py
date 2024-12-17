@@ -3,103 +3,101 @@ import pygame
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, name, number, image_number, board):
+    def __init__(self, name, num, image_num, board):
         super().__init__()
 
         self.name = name
-        self.number = number
-        self.image = pygame.image.load(self.get_ship_image(image_number))
+        self.num = num
+        self.image = pygame.image.load(self.get_ship_image(image_num))
         self.board = board
 
-        self.pos = board.get_random_planet_pos()
+        self.pos = board.get_rand_planet_pos()
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = self.get_rect_left_top(self.pos)
 
         self.next = None
 
-    def get_number(self):
-        return self.number
+    def get_num(self):
+        return self.num
 
     def get_pos(self):
         return self.pos
 
     def get_rect_left_top(self, pos):
+        board_pos = self.board.get_pos()
+        tile_size = self.board.get_tile_size()
+        size = self.image.get_size()
+
         return (
-            (
-                self.board.get_pos()[0]
-                + pos[0] * self.board.get_tile_size()
-                + (self.board.get_tile_size() - self.image.get_width()) / 2
-            ),
-            (
-                self.board.get_pos()[1]
-                + pos[1] * self.board.get_tile_size()
-                + (self.board.get_tile_size() - self.image.get_height()) / 2
-            ),
+            board_pos[0] + pos[0] * tile_size + (tile_size - size[0]) / 2,
+            board_pos[1] + pos[1] * tile_size + (tile_size - size[1]) / 2,
         )
 
-    def get_ship_image(self, image_number):
-        return f"./resources/images/tiny-spaceships/tiny_ship{image_number}.png"
+    def get_ship_image(self, image_num):
+        return f"./resources/images/tiny-spaceships/tiny_ship{image_num}.png"
 
     def draw(self, window):
         window.blit(self.image, self.rect)
 
     def move(self, new_pos, last_pos):
-        if new_pos in self.board.get_connected_nodes(last_pos):
+        if new_pos in self.board.get_conns(last_pos):
             self.pos = new_pos
             self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
             return True
         return False
 
 
+# Linked List
 class PlayerList:
     def __init__(self, board):
         self.board = board
 
-        self.current_turn_taker = None
-        self.first_player = None
-        self.player_number = 0
+        self.curr = None  # The player who is currently taking their turn.
+        self.first = None  # The first player of the turn order.
 
-    def get_current_turn_taker(self):
-        return self.current_turn_taker
+        self.len_cycle = 0  # The length of one cycle (as list is infinite).
 
-    def shift_current_turn_taker(self, num_shifts=1):
-        for _ in range(num_shifts):
-            self.current_turn_taker = self.current_turn_taker.next
-        return self.current_turn_taker
+    def get_curr(self):
+        return self.curr
 
-    def add(self, name, image_number):
-        new_player = Player(name, self.player_number, image_number, self.board)
-        self.player_number += 1
+    def cycle_curr(self, num_turns=1):
+        for _ in range(num_turns):
+            self.curr = self.curr.next
+        return self.curr
 
-        if self.first_player is None:
-            new_player.next = new_player
-            self.first_player = new_player
+    def add(self, name, image_num):
+        new = Player(name, self.len_cycle, image_num, self.board)
+        self.len_cycle += 1
+
+        if self.first is None:
+            new.next = new
+            self.first = new
         else:
-            current_player = self.first_player
+            curr = self.first
 
-            while current_player.next != self.first_player:
-                current_player = current_player.next
+            while curr.next != self.first:
+                curr = curr.next
 
-            current_player.next = new_player
+            curr.next = new
 
-            new_player.next = self.first_player
+            new.next = self.first
 
-        if self.current_turn_taker is None:
-            self.current_turn_taker = self.first_player
+        if self.curr is None:
+            self.curr = self.first
 
     def get_list(self):
-        if self.first_player is None:
+        if self.first is None:
             return []
 
         result = []
 
-        current_player = self.first_player
+        curr = self.first
 
         while True:
-            result.append(current_player)
-            current_player = current_player.next
+            result.append(curr)
+            curr = curr.next
 
-            if current_player == self.first_player:
+            if curr == self.first:
                 break
 
         return result

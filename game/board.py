@@ -3,7 +3,7 @@ import pygame
 from collections import defaultdict, deque
 from random import randint, choice
 
-from .helper import calculate_distance, merge_sort
+from .helper import find_dist, merge_sort
 
 
 class Board:
@@ -118,34 +118,36 @@ class Board:
 
             for isle in isles:
                 for planet in isle:
-                    distances = defaultdict(int)
+                    min_dist = float("inf")
                     for next_planet in mainland:
-                        distances[next_planet] = calculate_distance(
-                            planet, next_planet
-                        )
+                        curr_dist = find_dist(planet, next_planet)
+                        if curr_dist < min_dist:
+                            min_dist = curr_dist
+                            min_dist_planet = next_planet
 
-                    print(distances)
+                    graph[planet].add(min_dist_planet)
+                    graph[min_dist_planet].add(planet)
 
         for node in graph:
-            for neighbour in self.get_adjacent_nodes(node):
-                if self.get_shortest_connected_distance(node, neighbour) > 3:
-                    graph[neighbour].add(node)
-                    graph[node].add(neighbour)
+            for adj in self.get_adj(node):
+                if self.get_min_conns_dist(node, adj) > 3:
+                    graph[adj].add(node)
+                    graph[node].add(adj)
 
         return graph, islands
 
     def draw(self, window, pos):
         drawn = set()
 
-        for node, neighbours in self.graph.items():
-            for neighbour in neighbours:
-                edge = frozenset([node, neighbour])
+        for node, conns in self.graph.items():
+            for conn in conns:
+                edge = frozenset([node, conn])
                 if edge not in drawn:
                     pygame.draw.line(
                         window,
                         self.line_colour,
                         self.rows[node[1]][node[0]].get_centre_pos(),
-                        self.rows[neighbour[1]][neighbour[0]].get_centre_pos(),
+                        self.rows[conn[1]][conn[0]].get_centre_pos(),
                     )
 
                     drawn.add(edge)
@@ -162,32 +164,32 @@ class Board:
                 image_rect = tile.get_rect_in_board()
                 window.blit(tile.get_image(), image_rect)
 
-    def get_adjacent_nodes(self, pos, dist=1):
-        neighbours = []
+    def get_adj(self, pos, dist=1):
+        adjs = []
 
         for i in range(pos[1] - 1, pos[1] + 2):
             for j in range(pos[0] - 1, pos[0] + 2):
                 if 0 <= i < self.size[1] and 0 <= j < self.size[0]:
-                    neighbours.append((j, i))
+                    adjs.append((j, i))
 
         if dist > 1:
-            for neighbour in neighbours:
-                neighbours.extend(get_adjacent_nodes(neighbour, dist - 1))
+            for adj in adjs:
+                adjs.extend(get_adj(adj, dist - 1))
 
-        return neighbours
+        return adjs
 
-    def get_connected_nodes(self, node, dist=1):
-        neighbours = []
+    def get_conns(self, node, dist=1):
+        adjs = []
         if node in self.graph:
-            neighbours.extend(self.graph[node])
+            adjs.extend(self.graph[node])
 
         if dist > 1:
-            for neighbour in neighbours:
-                neighbours.extend(get_connected_nodes(neighbour, dist - 1))
+            for adj in adjs:
+                adjs.extend(get_conns(adj, dist - 1))
 
-        return neighbours
+        return adjs
 
-    def get_shortest_connected_distance(self, start, end):
+    def get_min_conns_dist(self, start, end):
         if start == end:
             return 0
 
@@ -196,23 +198,23 @@ class Board:
 
         # BFS
         while queue:
-            current = queue.popleft()
+            curr = queue.popleft()
 
-            if current == end:
-                return dist[current]
+            if curr == end:
+                return dist[curr]
 
-            for neighbour in self.get_connected_nodes(current):
-                if neighbour not in dist:
-                    queue.append(neighbour)
-                    dist[neighbour] = dist[current] + 1
+            for adj in self.get_conns(curr):
+                if adj not in dist:
+                    queue.append(adj)
+                    dist[adj] = dist[curr] + 1
 
         return -1
 
-    def get_random_planet_pos(self):
+    def get_rand_planet_pos(self):
         return choice(list(self.graph))
 
-    def get_type_at_pos_on_board(self, pos_on_board):
-        return self.rows[pos_on_board[1]][pos_on_board[0]].get_type()
+    def get_type_at_board_pos(self, board_pos):
+        return self.rows[board_pos[1]][board_pos[0]].get_type()
 
     def order_tiles(self, tiles):
         result = []
