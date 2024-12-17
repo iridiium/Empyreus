@@ -95,7 +95,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                curr_player = player.get_curr
+                curr_player = players.get_curr()
                 valid_move = curr_player.move(board_pos, curr_player.get_pos())
 
                 if valid_move:
