@@ -6,7 +6,7 @@ from random import randrange
 from game.background import Background
 from game.board import Board
 from game.player import Player, PlayerList
-from game.spritesheet import Spritesheet
+from game.sprite_sheet import SpriteSheet
 
 # Constants
 BLACK = (0, 0, 0)
@@ -15,29 +15,22 @@ WHITE = (255, 255, 255)
 
 WINDOW_SIZE = (1024, 640)
 
-BOARD_SIZE = (6, 6)
+BOARD_DIMS = (6, 6)
 
-TILE_BASE_SIZE = 72
-TILE_BORDER_SIZE = 8
-TILE_SIZE = TILE_BASE_SIZE + TILE_BORDER_SIZE
-FONT_SIZE = TILE_SIZE / 4
-
-BOARD_START_POS = (
-    (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
-    (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
+TILE_BASE_SIZE = (72, 72)
+TILE_BORDER_SIZE = (8, 8)
+TILE_SIZE = (
+    TILE_BASE_SIZE[0] + TILE_BORDER_SIZE[0],
+    TILE_BASE_SIZE[1] + TILE_BORDER_SIZE[1],
 )
-
-BOARD_END_POS = (
-    BOARD_START_POS[0] + TILE_SIZE * BOARD_SIZE[0],
-    BOARD_START_POS[1] + TILE_SIZE * BOARD_SIZE[1],
-)
+FONT_SIZE = TILE_SIZE[1] / 4
 
 NUM_PLAYERS = 2
 
-PLANETS = Spritesheet(
-    "./resources/images/CelestialObjects/CelestialObjects_Planets.png",
-    (64, 64),
-    {
+PLANETS = SpriteSheet(
+    image_file_path="./resources/images/CelestialObjects/CelestialObjects_Planets.png",
+    sprite_size=(64, 64),
+    names={
         "water": (0, 0),
         "helium": (0, 1),
         "ore": (1, 0),
@@ -48,24 +41,26 @@ PLANETS = Spritesheet(
 )
 
 board = Board(
-    size=BOARD_SIZE,
-    pos=BOARD_START_POS,
+    dims=BOARD_DIMS,
     line_colour=WHITE,
     tile_colour=GREY,
     tile_base_size=TILE_BASE_SIZE,
     tile_border_size=TILE_BORDER_SIZE,
-    spritesheet=PLANETS,
+    window_size=WINDOW_SIZE,
+    sprite_sheet=PLANETS,
     tiles={
         "water": 4,
         "helium": 4,
         "ore": 4,
         "carbon": 4,
         "antimatter": 4,
-        "empty": -1,
+        "empty": float("inf"),
     },
 )
 
-bg = Background("./resources/images/back_1024x640.png", (0, 0))
+bg = Background(
+    image_file_path="./resources/images/back_1024x640.png", pos=(0, 0)
+)
 
 
 # Game loop
@@ -121,9 +116,9 @@ def main():
             FONT.render_to(
                 window,
                 (
-                    10 + BOARD_END_POS[0] + 0.5 * TILE_SIZE,
-                    BOARD_START_POS[1]
-                    + (player_num * (TILE_BORDER_SIZE + FONT_SIZE)),
+                    10 + board.get_end_pos()[0] + 0.5 * TILE_SIZE[0],
+                    board.get_pos()[1]
+                    + (player_num * (TILE_BORDER_SIZE[1] + FONT_SIZE)),
                 ),
                 f"Player {player_num + 1}:",
                 WHITE,
@@ -131,13 +126,13 @@ def main():
 
         title_text = TITLE_FONT.render("Empyreus", WHITE, size=2 * FONT_SIZE)
         title_text_rect = title_text[0].get_rect(
-            center=(WINDOW_SIZE[0] / 2, (BOARD_START_POS[1] / 2))
+            center=(WINDOW_SIZE[0] / 2, (board.get_pos()[1] / 2))
         )
         window.blit(title_text[0], title_text_rect)
 
         FONT.render_to(
             window,
-            (10, BOARD_START_POS[1]),
+            (10, board.get_pos()[1]),
             f"Turns elapsed: {total_turns}",
             WHITE,
         )
@@ -146,7 +141,7 @@ def main():
             window,
             (
                 10,
-                BOARD_START_POS[1] + FONT_SIZE + TILE_BORDER_SIZE,
+                board.get_pos()[1] + FONT_SIZE + TILE_BORDER_SIZE[1],
             ),
             f"Player {curr_player.get_num() + 1}'s turn.",
             WHITE,

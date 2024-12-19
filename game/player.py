@@ -1,5 +1,7 @@
 import pygame
 
+from .helper import get_conns
+
 
 class Player(pygame.sprite.Sprite):
 
@@ -29,8 +31,8 @@ class Player(pygame.sprite.Sprite):
         size = self.image.get_size()
 
         return (
-            board_pos[0] + pos[0] * tile_size + (tile_size - size[0]) / 2,
-            board_pos[1] + pos[1] * tile_size + (tile_size - size[1]) / 2,
+            board_pos[0] + pos[0] * tile_size[0] + (tile_size[0] - size[0]) / 2,
+            board_pos[1] + pos[1] * tile_size[0] + (tile_size[1] - size[1]) / 2,
         )
 
     def get_ship_image(self, image_num):
@@ -40,7 +42,7 @@ class Player(pygame.sprite.Sprite):
         window.blit(self.image, self.rect)
 
     def move(self, new_pos, last_pos):
-        if new_pos in self.board.get_conns(last_pos):
+        if new_pos in get_conns(self.board.get_graph(), last_pos):
             self.pos = new_pos
             self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
             return True
