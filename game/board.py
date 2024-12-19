@@ -119,11 +119,12 @@ class Board:
             for isle in isles:
                 for planet in isle:
                     min_dist = float("inf")
-                    for next_planet in mainland:
-                        curr_dist = find_dist(planet, next_planet)
-                        if curr_dist < min_dist:
-                            min_dist = curr_dist
-                            min_dist_planet = next_planet
+                    min_dist_planet = min(
+                        mainland,
+                        key=lambda other_planet: find_dist(
+                            planet, other_planet
+                        ),
+                    )
 
                     graph[planet].add(min_dist_planet)
                     graph[min_dist_planet].add(planet)
@@ -136,7 +137,7 @@ class Board:
 
         return graph, islands
 
-    def draw(self, window, pos):
+    def draw(self, window, mouse_pos_on_board):
         drawn = set()
 
         for node, conns in self.graph.items():
@@ -154,7 +155,7 @@ class Board:
 
         for j, row in enumerate(self.rows):
             for i, tile in enumerate(row):
-                if (i, j) == pos:
+                if (i, j) == mouse_pos_on_board:
                     pygame.draw.rect(
                         window,
                         tile.get_colour(),
@@ -167,10 +168,10 @@ class Board:
     def get_adj(self, pos, dist=1):
         adjs = []
 
-        for i in range(pos[1] - 1, pos[1] + 2):
-            for j in range(pos[0] - 1, pos[0] + 2):
-                if 0 <= i < self.size[1] and 0 <= j < self.size[0]:
-                    adjs.append((j, i))
+        for j in range(pos[1] - 1, pos[1] + 2):
+            for i in range(pos[0] - 1, pos[0] + 2):
+                if 0 <= i < self.size[0] and 0 <= j < self.size[1]:
+                    adjs.append((i, j))
 
         if dist > 1:
             for adj in adjs:

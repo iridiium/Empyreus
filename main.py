@@ -13,7 +13,7 @@ BLACK = (0, 0, 0)
 GREY = (128, 128, 128)
 WHITE = (255, 255, 255)
 
-WINDOW_SIZE = (800, 600)
+WINDOW_SIZE = (1024, 640)
 
 BOARD_SIZE = (6, 6)
 
@@ -22,9 +22,14 @@ TILE_BORDER_SIZE = 8
 TILE_SIZE = TILE_BASE_SIZE + TILE_BORDER_SIZE
 FONT_SIZE = TILE_SIZE / 4
 
-BOARD_POS = (
+BOARD_START_POS = (
     (WINDOW_SIZE[0] - BOARD_SIZE[0] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
     (WINDOW_SIZE[1] - BOARD_SIZE[1] * TILE_SIZE - TILE_BORDER_SIZE) / 2,
+)
+
+BOARD_END_POS = (
+    BOARD_START_POS[0] + TILE_SIZE * BOARD_SIZE[0],
+    BOARD_START_POS[1] + TILE_SIZE * BOARD_SIZE[1],
 )
 
 NUM_PLAYERS = 2
@@ -44,7 +49,7 @@ PLANETS = Spritesheet(
 
 board = Board(
     size=BOARD_SIZE,
-    pos=BOARD_POS,
+    pos=BOARD_START_POS,
     line_colour=WHITE,
     tile_colour=GREY,
     tile_base_size=TILE_BASE_SIZE,
@@ -60,7 +65,7 @@ board = Board(
     },
 )
 
-bg = Background("./resources/images/back_900x675.png", (0, 0))
+bg = Background("./resources/images/back_1024x640.png", (0, 0))
 
 
 # Game loop
@@ -69,6 +74,9 @@ def main():
 
     FONT = pygame.freetype.Font(
         "resources/fonts/Roboto/Roboto-Regular.ttf", FONT_SIZE
+    )
+    TITLE_FONT = pygame.freetype.Font(
+        "resources/fonts/Roboto/Roboto-Bold.ttf", FONT_SIZE
     )
 
     window = pygame.display.set_mode(WINDOW_SIZE)
@@ -89,29 +97,58 @@ def main():
         window.blit(bg.image, bg.rect)
 
         mouse_pos = pygame.mouse.get_pos()
-        board_pos = board.coord_to_board_pos(mouse_pos)
+        mouse_pos_on_board = board.coord_to_board_pos(mouse_pos)
+
+        curr_player = players.get_curr()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                curr_player = players.get_curr()
-                valid_move = curr_player.move(board_pos, curr_player.get_pos())
+                valid_move = curr_player.move(
+                    mouse_pos_on_board, curr_player.get_pos()
+                )
 
                 if valid_move:
                     players.cycle_curr()
                     total_turns += 1
 
-        board.draw(window, board_pos)
+        board.draw(window, mouse_pos_on_board)
 
-        for player in players.get_list():
+        for player_num, player in enumerate(players.get_list()):
             player.draw(window)
 
-        FONT.render_to(window, (10, 10), f"Turns elapsed: {total_turns}", WHITE)
+            FONT.render_to(
+                window,
+                (
+                    10 + BOARD_END_POS[0] + 0.5 * TILE_SIZE,
+                    BOARD_START_POS[1]
+                    + (player_num * (TILE_BORDER_SIZE + FONT_SIZE)),
+                ),
+                f"Player {player_num + 1}:",
+                WHITE,
+            )
+
+        title_text = TITLE_FONT.render("Empyreus", WHITE, size=2 * FONT_SIZE)
+        title_text_rect = title_text[0].get_rect(
+            center=(WINDOW_SIZE[0] / 2, (BOARD_START_POS[1] / 2))
+        )
+        window.blit(title_text[0], title_text_rect)
+
         FONT.render_to(
             window,
-            (10, 10 + TILE_BORDER_SIZE + FONT_SIZE),
-            f"Player {players.get_curr().get_num() + 1}'s turn.",
+            (10, BOARD_START_POS[1]),
+            f"Turns elapsed: {total_turns}",
+            WHITE,
+        )
+
+        FONT.render_to(
+            window,
+            (
+                10,
+                BOARD_START_POS[1] + FONT_SIZE + TILE_BORDER_SIZE,
+            ),
+            f"Player {curr_player.get_num() + 1}'s turn.",
             WHITE,
         )
 
