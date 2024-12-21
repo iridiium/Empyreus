@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import pygame
 
 from collections import defaultdict
+from collections.abc import Iterable
 from random import randint, choice
 
 from .helper import (
@@ -33,27 +36,32 @@ class Board:
         self.tile_border_size = tile_border_size
         self.window_size = window_size
         self.sprite_sheet = sprite_sheet
-        self.tile_order, self.tile_types = self.order_tiles(tiles)
+        self.tile_sprite_order, self.tile_type_order = self.order_tiles(tiles)
 
         self.num_planets = sum(
             list(filter(lambda num: num > 0, tiles.values()))
         )
-        self.tile_size = tuple(
-            sum(val) for val in zip(tile_base_size, tile_border_size)
+        self.tile_size: tuple[int, int] = (
+            tile_base_size[0] + tile_border_size[0],
+            tile_base_size[1] + tile_border_size[1],
         )
         self.pos = (
-            (
-                self.window_size[0]
-                - self.dims[0] * self.tile_size[0]
-                - self.tile_border_size[0]
-            )
-            / 2,
-            (
-                self.window_size[1]
-                - self.dims[1] * self.tile_size[1]
-                - self.tile_border_size[1]
-            )
-            / 2,
+            int(
+                (
+                    self.window_size[0]
+                    - self.dims[0] * self.tile_size[0]
+                    - self.tile_border_size[0]
+                )
+                / 2
+            ),
+            int(
+                (
+                    self.window_size[1]
+                    - self.dims[1] * self.tile_size[1]
+                    - self.tile_border_size[1]
+                )
+                / 2
+            ),
         )
         self.end_pos = (
             self.pos[0] + self.tile_size[0] * self.dims[0],
@@ -64,12 +72,12 @@ class Board:
             [
                 Tile(
                     pos=(
-                        i * self.tile_size[0] + self.pos[0],
-                        j * self.tile_size[1] + self.pos[1],
+                        int(i * self.tile_size[0] + self.pos[0]),
+                        int(j * self.tile_size[1] + self.pos[1]),
                     ),
                     colour=tile_colour,
-                    image=next(self.tile_order),
-                    type=next(self.tile_types),
+                    image=next(self.tile_sprite_order),
+                    type=next(self.tile_type_order),
                     base_size=tile_base_size,
                     border_size=tile_border_size,
                 )
@@ -80,19 +88,21 @@ class Board:
 
         self.graph = self.create_graph(self.matrix)
 
-    def get_end_pos(self):
+    def get_end_pos(self) -> tuple[int, int]:
         return self.end_pos
 
-    def get_graph(self):
+    def get_graph(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
         return self.graph
 
-    def get_pos(self):
+    def get_pos(self) -> tuple[int, int]:
         return self.pos
 
-    def get_tile_size(self):
+    def get_tile_size(self) -> tuple[int, int]:
         return self.tile_size
 
-    def coord_to_board_pos(self, coord):
+    def coord_to_board_pos(
+        self, coord: tuple[int, int]
+    ) -> tuple[int | None, int | None]:
         board_pos_x = (coord[0] - self.pos[0]) // self.tile_size[0]
         board_pos_y = (coord[1] - self.pos[1]) // self.tile_size[1]
 
@@ -101,13 +111,23 @@ class Board:
             board_pos_y if 0 <= board_pos_y <= self.dims[1] - 1 else None,
         )
 
-    def create_graph(self, matrix):
-        graph = defaultdict(set)
+    def create_graph(
+        self, matrix: list[list[Tile]]
+    ) -> defaultdict[tuple[int, int], set[tuple[int, int]]]:
+        graph: defaultdict[tuple[int, int], set[tuple[int, int]]] = defaultdict(
+            set
+        )
         visited = [
             [tile.get_type() == "empty" for tile in row] for row in matrix
         ]
 
-        def dfs(i, j, last_i, last_j, total_targets):
+        def dfs(
+            i: int,
+            j: int,
+            last_i: int,
+            last_j: int,
+            island: list[tuple[int, int]],
+        ):
             last_node = (last_j, last_i)
             node = (j, i)
 
@@ -116,7 +136,7 @@ class Board:
                 graph[last_node].add(node)
                 graph[node].add(last_node)
 
-            total_targets.append(node)
+            island.append(node)
 
             for m in range(i - 1, i + 2):
                 for n in range(j - 1, j + 2):
@@ -125,13 +145,13 @@ class Board:
                         and 0 <= n < self.dims[0]
                         and not visited[m][n]
                     ):
-                        dfs(m, n, i, j, total_targets)
+                        dfs(m, n, i, j, island)
 
-        islands = []
+        islands: list[list[tuple[int, int]]] = []
         for i in range(self.dims[1]):
             for j in range(self.dims[0]):
                 if not visited[i][j]:
-                    island = []
+                    island: list[tuple[int, int]] = []
                     dfs(i, j, -1, -1, island)
                     islands.append(island)
 
@@ -165,7 +185,42 @@ class Board:
 
         return graph
 
-    def draw(self, window, mouse_pos_on_board):
+    def get_rand_planet_pos(self) -> tuple[int, int]:
+        return choice(list(self.graph))
+
+    def get_type_at_board_pos(self, board_pos: tuple[int, int]) -> str:
+        return self.matrix[board_pos[1]][board_pos[0]].get_type()
+
+    def order_tiles(
+        self, tiles: dict[str, int]
+    ) -> tuple[Iterable[pygame.Surface], Iterable[str]]:
+        tile_sprite_order: list[pygame.Surface] = []
+        tile_type_order: list[str] = []
+
+        total = 0
+
+        for tile_type, tile_amount in tiles.items():
+            if tile_amount == float("inf"):
+                tile_amount = self.dims[0] * self.dims[1] - total
+            else:
+                total += tile_amount
+
+            for _ in range(tile_amount):
+                target = randint(0, len(tile_sprite_order))
+                tile_sprite_order.insert(
+                    target,
+                    self.sprite_sheet.get_sprite_by_name(tile_type),
+                )
+                tile_type_order.insert(
+                    target,
+                    tile_type,
+                )
+
+        return iter(tile_sprite_order), iter(tile_type_order)
+
+    def render_to(
+        self, window: pygame.display, mouse_pos_on_board: tuple[int, int]
+    ) -> None:
         drawn = set()
 
         for node, conns in self.graph.items():
@@ -193,40 +248,18 @@ class Board:
                 image_rect = tile.get_rect_in_board()
                 window.blit(tile.get_image(), image_rect)
 
-    def get_rand_planet_pos(self):
-        return choice(list(self.graph))
-
-    def get_type_at_board_pos(self, board_pos):
-        return self.matrix[board_pos[1]][board_pos[0]].get_type()
-
-    def order_tiles(self, tiles):
-        result = []
-        tile_types = []
-        total = 0
-
-        for tile_type, tile_amount in tiles.items():
-            if tile_amount == float("inf"):
-                tile_amount = self.dims[0] * self.dims[1] - total
-            else:
-                total += tile_amount
-
-            for _ in range(tile_amount):
-                target = randint(0, len(result))
-                result.insert(
-                    target,
-                    self.sprite_sheet.get_sprite_by_name(tile_type),
-                )
-                tile_types.insert(
-                    target,
-                    tile_type,
-                )
-
-        return iter(result), iter(tile_types)
-
 
 class Tile:
 
-    def __init__(self, pos, colour, image, type, base_size, border_size):
+    def __init__(
+        self,
+        pos: tuple[int, int],
+        colour: tuple[int, int, int],
+        image: pygame.Surface,
+        type: str,
+        base_size: tuple[int, int],
+        border_size: tuple[int, int],
+    ):
         self.pos = pos
         self.colour = colour
         self.image = image

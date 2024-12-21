@@ -108,10 +108,10 @@ def main():
                     players.cycle_curr()
                     total_turns += 1
 
-        board.draw(window, mouse_pos_on_board)
+        board.render_to(window, mouse_pos_on_board)
 
         for player_num, player in enumerate(players.get_list()):
-            player.draw(window)
+            player.render_to(window)
 
             FONT.render_to(
                 window,

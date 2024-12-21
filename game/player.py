@@ -38,15 +38,15 @@ class Player(pygame.sprite.Sprite):
     def get_ship_image(self, image_num):
         return f"./resources/images/tiny-spaceships/tiny_ship{image_num}.png"
 
-    def draw(self, window):
-        window.blit(self.image, self.rect)
-
     def move(self, new_pos, last_pos):
         if new_pos in get_conns(self.board.get_graph(), last_pos):
             self.pos = new_pos
             self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
             return True
         return False
+
+    def render_to(self, window):
+        window.blit(self.image, self.rect)
 
 
 # Linked List
