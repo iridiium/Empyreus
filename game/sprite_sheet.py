@@ -20,7 +20,10 @@ class SpriteSheet:
             ),
         )
 
-    def get_sprite_by_coord(
+    def get_names(self) -> dict[str, tuple[int, int]]:
+        return self.names
+
+    def get_sprite_from_coord(
         self, sprite_coord: tuple[int, int]
     ) -> pygame.Surface:
         return self.image.subsurface(
@@ -32,7 +35,7 @@ class SpriteSheet:
             )
         )
 
-    def get_sprite_by_name(self, sprite_name: str) -> pygame.Surface:
+    def get_sprite_from_name(self, sprite_name: str) -> pygame.Surface:
         sprite_pos = self.names[sprite_name]
 
-        return self.get_sprite_by_coord(sprite_pos)
+        return self.get_sprite_from_coord(sprite_pos)

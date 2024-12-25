@@ -15,9 +15,12 @@ class Player(pygame.sprite.Sprite):
 
         self.pos = board.get_rand_planet_pos()
         self.rect = self.image.get_rect()
-        self.rect.left, self.rect.top = self.get_rect_left_top(self.pos)
+        self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
         self.next = None
+
+    def get_image(self):
+        return self.image
 
     def get_num(self):
         return self.num
@@ -25,23 +28,13 @@ class Player(pygame.sprite.Sprite):
     def get_pos(self):
         return self.pos
 
-    def get_rect_left_top(self, pos):
-        board_pos = self.board.get_pos()
-        tile_size = self.board.get_tile_size()
-        size = self.image.get_size()
-
-        return (
-            board_pos[0] + pos[0] * tile_size[0] + (tile_size[0] - size[0]) / 2,
-            board_pos[1] + pos[1] * tile_size[0] + (tile_size[1] - size[1]) / 2,
-        )
-
     def get_ship_image(self, image_num):
         return f"./resources/images/tiny-spaceships/tiny_ship{image_num}.png"
 
     def move(self, new_pos, last_pos):
         if new_pos in get_conns(self.board.get_graph(), last_pos):
             self.pos = new_pos
-            self.rect.left, self.rect.top = self.get_rect_left_top(new_pos)
+            self.rect.center = self.board.get_tile_centre_pos(self.pos)
             return True
         return False
 

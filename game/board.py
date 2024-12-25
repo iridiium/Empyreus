@@ -3,8 +3,8 @@ from __future__ import annotations
 import pygame
 
 from collections import defaultdict
-from collections.abc import Iterable
 from random import randint, choice
+from typing import Iterator
 
 from .helper import (
     find_dist,
@@ -27,6 +27,7 @@ class Board:
         tile_border_size: tuple[int, int],
         window_size: tuple[int, int],
         sprite_sheet: SpriteSheet,
+        icon_sprite_sheet: SpriteSheet,
         tiles: dict[str, int],
     ):
         self.dims = dims
@@ -36,7 +37,8 @@ class Board:
         self.tile_border_size = tile_border_size
         self.window_size = window_size
         self.sprite_sheet = sprite_sheet
-        self.tile_sprite_order, self.tile_type_order = self.order_tiles(tiles)
+        self.icon_sprite_sheet = icon_sprite_sheet
+        self.tile_order = self.order_tiles(tiles)
 
         self.num_planets = sum(
             list(filter(lambda num: num > 0, tiles.values()))
@@ -71,13 +73,12 @@ class Board:
         self.matrix = [
             [
                 Tile(
-                    pos=(
-                        int(i * self.tile_size[0] + self.pos[0]),
-                        int(j * self.tile_size[1] + self.pos[1]),
+                    centre_pos=(
+                        int((i + 0.5) * self.tile_size[0] + self.pos[0]),
+                        int((j + 0.5) * self.tile_size[1] + self.pos[1]),
                     ),
                     colour=tile_colour,
-                    image=next(self.tile_sprite_order),
-                    type=next(self.tile_type_order),
+                    tile=next(self.tile_order),
                     base_size=tile_base_size,
                     border_size=tile_border_size,
                 )
@@ -97,10 +98,27 @@ class Board:
     def get_pos(self) -> tuple[int, int]:
         return self.pos
 
+    def get_tile_border_size(self) -> tuple[int, int]:
+        return self.tile_border_size
+
     def get_tile_size(self) -> tuple[int, int]:
         return self.tile_size
 
-    def coord_to_board_pos(
+    def get_window_size(self) -> tuple[int, int]:
+        return self.window_size
+
+    def get_icon_sprite_from_type(self, type) -> None | pygame.Surface:
+        icon_type = type.split("_")[-1]
+
+        if icon_type not in self.icon_sprite_sheet.get_names():
+            return None
+
+        return self.icon_sprite_sheet.get_sprite_from_name(icon_type)
+
+    def get_tile_centre_pos(self, pos):
+        return self.matrix[pos[1]][pos[0]].get_centre_pos()
+
+    def board_pos_from_coord(
         self, coord: tuple[int, int]
     ) -> tuple[int | None, int | None]:
         board_pos_x = (coord[0] - self.pos[0]) // self.tile_size[0]
@@ -114,6 +132,7 @@ class Board:
     def create_graph(
         self, matrix: list[list[Tile]]
     ) -> defaultdict[tuple[int, int], set[tuple[int, int]]]:
+        # Creates a tree which may be disconnected.
         graph: defaultdict[tuple[int, int], set[tuple[int, int]]] = defaultdict(
             set
         )
@@ -155,6 +174,7 @@ class Board:
                     dfs(i, j, -1, -1, island)
                     islands.append(island)
 
+        # Creates a connected tree.
         # Links the mainland to all the isles.
         # - mainland: the largest connected group of planets.
         # - isles: any smaller connected groups not adjacent to the mainland.
@@ -175,6 +195,7 @@ class Board:
                     graph[planet].add(min_dist_planet)
                     graph[min_dist_planet].add(planet)
 
+        # Creates a graph (with potential for multiple edges per node).
         # Ensures that all neighbours are closer than 3 moves away.
         # This is purely for a less frustrating game.
         for node in graph:
@@ -188,14 +209,13 @@ class Board:
     def get_rand_planet_pos(self) -> tuple[int, int]:
         return choice(list(self.graph))
 
-    def get_type_at_board_pos(self, board_pos: tuple[int, int]) -> str:
+    def get_type_from_board_pos(self, board_pos: tuple[int, int]) -> str:
         return self.matrix[board_pos[1]][board_pos[0]].get_type()
 
     def order_tiles(
         self, tiles: dict[str, int]
-    ) -> tuple[Iterable[pygame.Surface], Iterable[str]]:
-        tile_sprite_order: list[pygame.Surface] = []
-        tile_type_order: list[str] = []
+    ) -> tuple[Iterator[pygame.Surface], Iterator[str]]:
+        tile_order = []
 
         total = 0
 
@@ -206,17 +226,20 @@ class Board:
                 total += tile_amount
 
             for _ in range(tile_amount):
-                target = randint(0, len(tile_sprite_order))
-                tile_sprite_order.insert(
-                    target,
-                    self.sprite_sheet.get_sprite_by_name(tile_type),
-                )
-                tile_type_order.insert(
-                    target,
-                    tile_type,
+                tile_order.insert(
+                    randint(0, len(tile_order)),
+                    {
+                        "sprite": self.sprite_sheet.get_sprite_from_name(
+                            tile_type
+                        ),
+                        "type": tile_type,
+                        "icon_sprite": self.get_icon_sprite_from_type(
+                            tile_type
+                        ),
+                    },
                 )
 
-        return iter(tile_sprite_order), iter(tile_type_order)
+        return iter(tile_order)
 
     def render_to(
         self, window: pygame.display, mouse_pos_on_board: tuple[int, int]
@@ -238,60 +261,59 @@ class Board:
 
         for j, row in enumerate(self.matrix):
             for i, tile in enumerate(row):
-                if (i, j) == mouse_pos_on_board:
-                    pygame.draw.rect(
-                        window,
-                        tile.get_colour(),
-                        tile.get_rect_in_board(),
-                    )
+                tile_rect = tile.get_rect_in_board()
 
-                image_rect = tile.get_rect_in_board()
-                window.blit(tile.get_image(), image_rect)
+                if (i, j) == mouse_pos_on_board:
+                    highlight_rect = tile_rect.scale_by(1)
+                    pygame.draw.rect(window, tile.get_colour(), highlight_rect)
+
+                window.blit(tile.get_image(), tile_rect)
+
+                if tile_icon_image := tile.get_icon_image():
+                    window.blit(tile_icon_image, tile_rect)
 
 
 class Tile:
 
     def __init__(
         self,
-        pos: tuple[int, int],
+        centre_pos: tuple[int, int],
         colour: tuple[int, int, int],
-        image: pygame.Surface,
-        type: str,
+        tile,
         base_size: tuple[int, int],
         border_size: tuple[int, int],
     ):
-        self.pos = pos
+        self.centre_pos = centre_pos
         self.colour = colour
-        self.image = image
-        self.type = type
+        self.tile = tile
         self.base_size = base_size
         self.border_size = border_size
 
-        self.dims = self.base_size + self.border_size
+        self.image = tile["sprite"]
+        self.type = tile["type"]
+        self.icon_image = tile["icon_sprite"]
 
-        self.centre_pos = (
-            self.pos[0] + self.dims[0] / 2,
-            self.pos[1] + self.dims[1] / 2,
-        )
+        self.size = self.base_size + self.border_size
 
         self.rect = self.image.get_rect()
 
-    def get_centre_pos(self):
+    def get_centre_pos(self) -> tuple[int, int]:
         return self.centre_pos
 
-    def get_colour(self):
+    def get_colour(self) -> tuple[int, int, int]:
         return self.colour
 
-    def get_image(self):
+    def get_icon_image(self) -> pygame.Surface:
+        return self.icon_image
+
+    def get_image(self) -> pygame.Surface:
         return self.image
 
-    def get_type(self):
+    def get_type(self) -> str:
         return self.type
 
-    def get_rect_in_board(self):
-        return (
-            self.pos[0] + self.border_size[0] / 2,
-            self.pos[1] + self.border_size[1] / 2,
-            self.dims[0],
-            self.dims[1],
-        )
+    def get_rect_in_board(self) -> tuple[float, float, int, int]:
+        rect_in_board = self.image.get_rect()
+        rect_in_board.center = self.centre_pos
+
+        return rect_in_board
