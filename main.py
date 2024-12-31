@@ -13,9 +13,11 @@ from ui.actions import UIActions
 from ui.text import UIText
 
 # Constants
-BLACK = (0, 0, 0)
-GREY = (128, 128, 128)
+
+# Palette
 WHITE = (255, 255, 255)
+GREY = (116, 117, 114)
+DARK_PURPLE = (16, 1, 41)
 
 WINDOW_SIZE = (1024, 640)
 
@@ -112,6 +114,11 @@ def main():
         window.fill(WHITE)
         window.blit(BACKGROUND.image, BACKGROUND.rect)
 
+        UI_ACTIONS = UIActions(
+            BOARD, (4, 1), (BOARD.get_size()[0] / 4, 40), (8, 8), WHITE
+        )
+        UI_ACTIONS.render_to(window)
+
         mouse_pos = pygame.mouse.get_pos()
         mouse_board_coord = BOARD.board_pos_from_coord(mouse_pos)
 
@@ -122,18 +129,17 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                valid_move = curr_player.move(
-                    mouse_board_coord, curr_player_pos
-                )
+                if (
+                    mouse_board_coord[0] is not None
+                    and mouse_board_coord[1] is not None
+                ):
+                    valid_move = curr_player.move(
+                        mouse_board_coord, curr_player_pos
+                    )
 
-                if valid_move:
-                    players.cycle_curr()
-                    total_turns += 1
-
-        BOARD.render_to(window, mouse_board_coord, curr_player)
-
-        for player_num, player in enumerate(players.get_list()):
-            player.render_to(window)
+                    if valid_move:
+                        players.cycle_curr()
+                        total_turns += 1
 
         UI_TEXT = UIText(
             BOARD,
@@ -144,12 +150,13 @@ def main():
             players,
             WHITE,
         )
-        UI_TEXT.render_to(window, total_turns, curr_player, True)
 
-        # UI_ACTIONS = UIActions(
-        #     BOARD, (4, 1), (BOARD.get_size()[0] / 4, 40), (8, 8), GREY
-        # )
-        # UI_ACTIONS.render_to(window)
+        UI_TEXT.render_to(window, total_turns, curr_player, mouse_pos)
+
+        BOARD.render_to(window, mouse_board_coord, curr_player)
+
+        for player_num, player in enumerate(players.get_list()):
+            player.render_to(window)
 
         pygame.display.flip()
 
