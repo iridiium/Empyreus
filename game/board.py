@@ -4,7 +4,7 @@ import pygame
 
 from collections import defaultdict
 from random import randint, choice
-from typing import Iterator
+from typing import Iterator, TypedDict
 
 from .helper import (
     find_dist,
@@ -65,7 +65,7 @@ class Board:
                 / 2
             ),
         )
-        self.end_pos = (
+        self.pos_end = (
             self.pos[0] + self.tile_size[0] * self.dims[0],
             self.pos[1] + self.tile_size[1] * self.dims[1],
         )
@@ -89,8 +89,8 @@ class Board:
 
         self.graph = self.create_graph(self.matrix)
 
-    def get_end_pos(self) -> tuple[int, int]:
-        return self.end_pos
+    def get_pos_end(self) -> tuple[int, int]:
+        return self.pos_end
 
     def get_graph(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
         return self.graph
@@ -107,13 +107,24 @@ class Board:
     def get_window_size(self) -> tuple[int, int]:
         return self.window_size
 
-    def get_icon_sprite_from_type(self, type) -> None | pygame.Surface:
-        icon_type = type.split("_")[-1]
+    def get_size(self) -> tuple[int, int]:
+        return (self.pos_end[0] - self.pos[0], self.pos_end[1] - self.pos[1])
 
-        if icon_type not in self.icon_sprite_sheet.get_names():
+    def get_icon_sprite_from_type(self, type) -> None | pygame.Surface:
+        resource_type = self.get_resource_type_from_planet_type(type)
+
+        if resource_type:
+            return self.icon_sprite_sheet.get_sprite_from_name(resource_type)
+
+        return None
+
+    def get_resource_type_from_planet_type(self, type) -> None | pygame.Surface:
+        resource_type = type.split("_")[-1]
+
+        if resource_type not in self.icon_sprite_sheet.get_names():
             return None
 
-        return self.icon_sprite_sheet.get_sprite_from_name(icon_type)
+        return resource_type
 
     def get_tile_centre_pos(self, pos):
         return self.matrix[pos[1]][pos[0]].get_centre_pos()
@@ -215,7 +226,13 @@ class Board:
     def order_tiles(
         self, tiles: dict[str, int]
     ) -> tuple[Iterator[pygame.Surface], Iterator[str]]:
-        tile_order = []
+        # Type hint for tile_order
+        class TileOrder(TypedDict):
+            sprite: pygame.Surface
+            type: str
+            icon_sprite: pygame.Surface
+
+        tile_order: list[TileOrder] = []
 
         total = 0
 
@@ -242,7 +259,10 @@ class Board:
         return iter(tile_order)
 
     def render_to(
-        self, window: pygame.display, mouse_pos_on_board: tuple[int, int]
+        self,
+        window: pygame.display,
+        mouse_board_coord: tuple[int, int],
+        player: Player,
     ) -> None:
         drawn = set()
 
@@ -263,9 +283,17 @@ class Board:
             for i, tile in enumerate(row):
                 tile_rect = tile.get_rect_in_board()
 
-                if (i, j) == mouse_pos_on_board:
-                    highlight_rect = tile_rect.scale_by(1)
-                    pygame.draw.rect(window, tile.get_colour(), highlight_rect)
+                if (i, j) == mouse_board_coord:
+                    mouse_board_highlight_rect = tile_rect.scale_by(1)
+                    pygame.draw.rect(
+                        window, tile.get_colour(), mouse_board_highlight_rect
+                    )
+
+                if (i, j) == player.get_pos():
+                    player_highlight_rect = tile_rect.scale_by(1)
+                    pygame.draw.rect(
+                        window, player.get_colour(), player_highlight_rect
+                    )
 
                 window.blit(tile.get_image(), tile_rect)
 
@@ -312,7 +340,7 @@ class Tile:
     def get_type(self) -> str:
         return self.type
 
-    def get_rect_in_board(self) -> tuple[float, float, int, int]:
+    def get_rect_in_board(self) -> pygame.Rect:
         rect_in_board = self.image.get_rect()
         rect_in_board.center = self.centre_pos
 

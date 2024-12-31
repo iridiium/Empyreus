@@ -1,13 +1,15 @@
 import pygame
 import pygame.freetype
 
-from random import randrange
+from random import choice, randrange
 
 from game.background import Background
 from game.board import Board
+from game.helper import gen_rand_light_colour
 from game.player import Player, PlayerList
 from game.sprite_sheet import SpriteSheet
 
+from ui.actions import UIActions
 from ui.text import UIText
 
 # Constants
@@ -96,10 +98,10 @@ def main():
 
     board_pos = BOARD.get_pos()
 
-    players = PlayerList(BOARD)
-    players.add("Anthony", 1)
-    players.add("Bert", 2)
-    players.add("Cuthbert", 3)
+    players = PlayerList(BOARD, RESOURCES)
+    players.add("Aloysius", 1, gen_rand_light_colour())
+    players.add("Bartholomew", 2, gen_rand_light_colour())
+    players.add("Cuthbert", 3, gen_rand_light_colour())
 
     total_turns = 0
 
@@ -111,23 +113,24 @@ def main():
         window.blit(BACKGROUND.image, BACKGROUND.rect)
 
         mouse_pos = pygame.mouse.get_pos()
-        mouse_pos_on_board = BOARD.board_pos_from_coord(mouse_pos)
+        mouse_board_coord = BOARD.board_pos_from_coord(mouse_pos)
 
         curr_player = players.get_curr()
+        curr_player_pos = curr_player.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 valid_move = curr_player.move(
-                    mouse_pos_on_board, curr_player.get_pos()
+                    mouse_board_coord, curr_player_pos
                 )
 
                 if valid_move:
                     players.cycle_curr()
                     total_turns += 1
 
-        BOARD.render_to(window, mouse_pos_on_board)
+        BOARD.render_to(window, mouse_board_coord, curr_player)
 
         for player_num, player in enumerate(players.get_list()):
             player.render_to(window)
@@ -141,7 +144,12 @@ def main():
             players,
             WHITE,
         )
-        UI_TEXT.render_on(window, total_turns, curr_player)
+        UI_TEXT.render_to(window, total_turns, curr_player, True)
+
+        # UI_ACTIONS = UIActions(
+        #     BOARD, (4, 1), (BOARD.get_size()[0] / 4, 40), (8, 8), GREY
+        # )
+        # UI_ACTIONS.render_to(window)
 
         pygame.display.flip()
 
