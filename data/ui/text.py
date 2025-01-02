@@ -1,7 +1,7 @@
 import pygame.freetype
 
-from game.board import Board
-from game.player import Player, PlayerList
+from ..game.board import Board
+from ..game.player import Player, PlayerList
 
 
 class UIText:

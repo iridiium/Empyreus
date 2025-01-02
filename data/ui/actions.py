@@ -1,6 +1,6 @@
 import pygame
 
-from game.board import Board
+from ..game.board import Board
 
 
 class UIActions:

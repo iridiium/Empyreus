@@ -3,14 +3,14 @@ import pygame.freetype
 
 from random import choice, randrange
 
-from game.background import Background
-from game.board import Board
-from game.helper import gen_rand_light_colour
-from game.player import Player, PlayerList
-from game.sprite_sheet import SpriteSheet
+from .game.background import Background
+from .game.board import Board
+from .game.helper import gen_rand_light_colour
+from .game.player import Player, PlayerList
+from .game.sprite_sheet import SpriteSheet
 
-from ui.actions import UIActions
-from ui.text import UIText
+from .ui.actions import UIActions
+from .ui.text import UIText
 
 # Constants
 
@@ -159,10 +159,3 @@ def main():
             player.render_to(window)
 
         pygame.display.flip()
-
-    pygame.quit()
-    exit()
-
-
-if __name__ == "__main__":
-    main()
