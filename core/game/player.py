@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
         return self.resources
 
     def get_ship_image(self, image_num):
-        return f"./resources/images/tiny-spaceships/tiny_ship{image_num}.png"
+        return f"./assets/images/tiny-spaceships/tiny_ship{image_num}.png"
 
     def move(self, new_pos, last_pos):
         if new_pos in get_conns(self.board_graph, last_pos):

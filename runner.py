@@ -1,7 +1,7 @@
 import sys
 import pygame
 
-from data.main import main
+from core.main import main
 
 if __name__ == "__main__":
     main()

@@ -14,12 +14,13 @@ from .ui.text import UIText
 
 # Constants
 
-# Palette
+WINDOW_SIZE = (1024, 640)
+
+# ---- Palette ----
 WHITE = (255, 255, 255)
 GREY = (116, 117, 114)
 DARK_PURPLE = (16, 1, 41)
-
-WINDOW_SIZE = (1024, 640)
+# -----------------
 
 BOARD_DIMS = (6, 6)
 
@@ -30,8 +31,12 @@ FONT_SIZE = 20
 
 NUM_PLAYERS = 2
 
+BACKGROUND = Background(
+    image_file_path="./assets/images/back_1024x640.png", pos=(0, 0)
+)
+
 PLANETS_ASTEROIDS = SpriteSheet(
-    image_file_path="./resources/images/CelestialObjects_PlanetsAsteroids.png",
+    image_file_path="./assets/images/CelestialObjects_PlanetsAsteroids.png",
     sprite_size=(64, 64),
     names={
         "planet_ice": (0, 0),
@@ -46,7 +51,7 @@ PLANETS_ASTEROIDS = SpriteSheet(
 )
 
 RESOURCES = SpriteSheet(
-    image_file_path="./resources/images/MiningIcons.png",
+    image_file_path="./assets/images/MiningIcons.png",
     sprite_size=(32, 32),
     names={
         "carbon": (1, 1),
@@ -78,21 +83,17 @@ BOARD = Board(
     },
 )
 
-BACKGROUND = Background(
-    image_file_path="./resources/images/back_1024x640.png", pos=(0, 0)
-)
-
 
 # Game loop
 def main():
     pygame.init()
 
     FONT = pygame.freetype.Font(
-        "resources/fonts/Roboto/Roboto-Regular.ttf", FONT_SIZE
+        "./assets/fonts/Roboto/Roboto-Regular.ttf", FONT_SIZE
     )
 
     FONT_BOLD = pygame.freetype.Font(
-        "resources/fonts/Roboto/Roboto-Bold.ttf", FONT_SIZE
+        "./assets/fonts/Roboto/Roboto-Bold.ttf", FONT_SIZE
     )
 
     window = pygame.display.set_mode(WINDOW_SIZE)
@@ -117,7 +118,15 @@ def main():
         UI_ACTIONS = UIActions(
             BOARD, (4, 1), (BOARD.get_size()[0] / 4, 40), (8, 8), WHITE
         )
-        UI_ACTIONS.render_to(window)
+        UI_TEXT = UIText(
+            BOARD,
+            FONT,
+            FONT_BOLD,
+            FONT_SIZE,
+            FONT_SIZE * 2,
+            players,
+            WHITE,
+        )
 
         mouse_pos = pygame.mouse.get_pos()
         mouse_board_coord = BOARD.board_pos_from_coord(mouse_pos)
@@ -141,16 +150,7 @@ def main():
                         players.cycle_curr()
                         total_turns += 1
 
-        UI_TEXT = UIText(
-            BOARD,
-            FONT,
-            FONT_BOLD,
-            FONT_SIZE,
-            FONT_SIZE * 2,
-            players,
-            WHITE,
-        )
-
+        UI_ACTIONS.render_to(window)
         UI_TEXT.render_to(window, total_turns, curr_player, mouse_pos)
 
         BOARD.render_to(window, mouse_board_coord, curr_player)

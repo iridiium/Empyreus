@@ -13,6 +13,7 @@ from .helper import (
     get_min_conns_dist,
     merge_sort,
 )
+from .player import Player
 from .sprite_sheet import SpriteSheet
 
 
@@ -223,16 +224,8 @@ class Board:
     def get_type_from_board_pos(self, board_pos: tuple[int, int]) -> str:
         return self.matrix[board_pos[1]][board_pos[0]].get_type()
 
-    def order_tiles(
-        self, tiles: dict[str, int]
-    ) -> tuple[Iterator[pygame.Surface], Iterator[str]]:
-        # Type hint for tile_order
-        class TileOrder(TypedDict):
-            sprite: pygame.Surface
-            type: str
-            icon_sprite: pygame.Surface
-
-        tile_order: list[TileOrder] = []
+    def order_tiles(self, tiles: dict[str, int]) -> Iterator[dict]:
+        tile_order: list[dict] = []
 
         total = 0
 

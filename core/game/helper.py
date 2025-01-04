@@ -7,22 +7,10 @@ from random import randrange
 
 
 # Graph-related
-def get_adjs(matrix, pos, dist=1):
-    adjs = []
-
-    for j in range(pos[1] - 1, pos[1] + 2):
-        for i in range(pos[0] - 1, pos[0] + 2):
-            if 0 <= i < len(matrix[0]) and 0 <= j < len(matrix):
-                adjs.append((i, j))
-
-    if dist > 1:
-        for adj in adjs:
-            adjs.extend(get_adj(adj, dist - 1))
-
-    return adjs
 
 
 def get_conns(graph, node, dist=1):
+    """Gets all elements in graph connected to a node."""
     adjs = []
     if node in graph:
         adjs.extend(graph[node])
@@ -35,6 +23,7 @@ def get_conns(graph, node, dist=1):
 
 
 def get_min_conns_dist(graph, start, end):
+    """Gets the smallest number of nodes on a path from start to end."""
     if start == end:
         return 0
 
@@ -57,7 +46,26 @@ def get_min_conns_dist(graph, start, end):
 
 
 # Matrix-related
+
+
+def get_adjs(matrix, pos, dist=1):
+    """Gets all elements in matrix at indices adjacent to the index at pos."""
+    adjs = []
+
+    for j in range(pos[1] - 1, pos[1] + 2):
+        for i in range(pos[0] - 1, pos[0] + 2):
+            if 0 <= i < len(matrix[0]) and 0 <= j < len(matrix):
+                adjs.append((i, j))
+
+    if dist > 1:
+        for adj in adjs:
+            adjs.extend(get_adj(adj, dist - 1))
+
+    return adjs
+
+
 def find_dist(coord1, coord2):
+    """Finds the Euclidean distance between coord1 and coord2."""
     return sqrt(((coord2[0] - coord1[0]) ** 2 + (coord2[1] - coord1[1]) ** 2))
 
 
