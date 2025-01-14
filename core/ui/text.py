@@ -36,46 +36,45 @@ class UIText:
         curr_player: Player,
         mouse_pos: bool,
     ) -> None:
-        self.render_title_text_to(window)
-
         self.render_player_list_text_to(window)
-
-        self.render_player_resource_text_to(window, curr_player, mouse_pos)
-
-        self.render_player_turn_text_to(window, total_turns, curr_player)
+        self.render_player_resource_text_to(window, mouse_pos)
+        self.render_player_turn_text_to(window)
+        self.render_title_text_to(window)
 
     def render_player_list_text_to(self, window: pygame.display) -> None:
         for player_num, player in enumerate(self.players.get_list()):
-            player_hud_text_left = (
-                self.board.get_pos_end()[0] + 0.4 * self.tile_size[0]
-            )
-            player_hud_text_top = self.board_pos[1] + (
-                player_num * (self.tile_border_size[1] + self.font_size)
-            )
-            self.font.render_to(
-                window,
-                (player_hud_text_left, player_hud_text_top),
-                f"Player {player_num + 1} ({player.get_name()}):",
-                player.get_colour(),
+            player_list_text_pos = (
+                self.board.get_pos_end()[0] + 0.1 * self.tile_size[0],
+                self.board_pos[1]
+                + (player_num * (self.tile_border_size[1] + self.font_size)),
             )
 
             player_image = player.get_image()
-            player_image_rect = player_image.get_rect()
-
-            player_image_rect.topleft = (
-                player_hud_text_left + 9 * self.font_size,
-                player_hud_text_top,
+            window.blit(
+                player_image,
+                player_list_text_pos
+                + (
+                    self.font_size,
+                    self.font_size,
+                ),
             )
-            player_image_rect.size = (self.font_size, self.font_size)
-            window.blit(player_image, player_image_rect)
+
+            self.font.render_to(
+                window,
+                (
+                    player_list_text_pos[0] + 50,
+                    player_list_text_pos[1],
+                ),
+                f"Player {player_num + 1} ({player.get_name()})",
+                player.get_colour(),
+            )
 
     def render_player_resource_text_to(
         self,
         window: pygame.display,
-        curr_player: Player,
         mouse_pos: tuple[int, int],
     ) -> None:
-        curr_player_resources = curr_player.get_resources()
+        curr_player_resources = self.players.get_curr().get_resources()
 
         resource_text_rect = pygame.Rect(
             20,
@@ -120,13 +119,11 @@ class UIText:
                     self.text_colour,
                 )
 
-    def render_player_turn_text_to(
-        self, window: pygame.display, total_turns: int, curr_player: Player
-    ) -> None:
+    def render_player_turn_text_to(self, window: pygame.display) -> None:
         self.font.render_to(
             window,
             (20, self.board_pos[1]),
-            f"Turns elapsed: {total_turns}",
+            f"Turns taken: {self.players.get_turns_taken()}",
             self.text_colour,
         )
 
@@ -136,7 +133,7 @@ class UIText:
                 20,
                 self.board_pos[1] + self.font_size + self.tile_border_size[1],
             ),
-            f"Player {curr_player.get_num() + 1}'s turn.",
+            f"Player {self.players.get_curr().get_num() + 1}'s turn.",
             self.text_colour,
         )
 

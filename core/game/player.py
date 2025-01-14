@@ -107,13 +107,18 @@ class PlayerList:
         self.first = None  # The first player of the turn order.
 
         self.len_cycle = 0  # The length of one cycle (as list is infinite).
+        self.turns_taken = 0  # Number of turns taken.
 
     def get_curr(self) -> Player:
         return self.curr
 
+    def get_turns_taken(self) -> int:
+        return self.turns_taken
+
     def cycle_curr(self, num_turns: int = 1) -> Player:
         for _ in range(num_turns):
             self.curr = self.curr.next
+            self.turns_taken += 1
         return self.curr
 
     def add(

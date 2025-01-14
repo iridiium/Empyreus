@@ -75,11 +75,14 @@ class MainRun:
 
         self.ui_actions = UIActions(
             self.board,
+            self.font,
+            self.font_size,
             (4, 1),
             (self.board.get_size()[0] / 4, 40),
             (8, 8),
             self.players,
             self.colours["white"],
+            self.colours["dark_purple"],
         )
         self.ui_text = UIText(
             self.board,
