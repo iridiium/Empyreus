@@ -1,21 +1,40 @@
+from __future__ import annotations
+
+# avoiding circular imports in type hints
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .board import Board
+
 import pygame
 
 from .helper import deepcopy_nested_dict, get_conns
+from .sprite_sheet import SpriteSheet
 
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, name, num, colour, image_num, board, resources):
+    def __init__(
+        self,
+        name: str,
+        num: int,
+        colour: tuple[int, int, int],
+        image_num: int,
+        board: Board,
+        resources: dict,
+    ):
         super().__init__()
 
         self.name = name
         self.num = num
         self.colour = colour
-        self.image = pygame.image.load(self.get_ship_image(image_num))
+        self.image = pygame.image.load(
+            self.get_ship_image_file_location(image_num)
+        )
         self.board = board
         self.resources = deepcopy_nested_dict(resources)
 
-        self.pos = board.get_rand_planet_pos()
+        self.pos = board.get_rand_non_empty_pos()
         self.rect = self.image.get_rect()
         self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
@@ -23,28 +42,34 @@ class Player(pygame.sprite.Sprite):
 
         self.next = None
 
-    def get_colour(self):
+    def get_colour(self) -> tuple[int, int, int]:
         return self.colour
 
-    def get_image(self):
+    def get_image(self) -> pygame.Surface:
         return self.image
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
 
-    def get_num(self):
+    def get_num(self) -> int:
         return self.num
 
-    def get_pos(self):
+    def get_pos(self) -> tuple[int, int]:
         return self.pos
 
-    def get_resources(self):
+    def get_resources(self) -> dict:
         return self.resources
 
-    def get_ship_image(self, image_num):
+    def get_ship_image_file_location(self, image_num: int) -> str:
         return f"./assets/images/tiny-spaceships/tiny_ship{image_num}.png"
 
-    def move(self, new_pos, last_pos):
+    def move(self, new_pos: tuple[int, int], last_pos: tuple[int, int]) -> bool:
+        """
+        Moves the player from one non-empty tile to another non-empty tile
+        connected to it.
+
+        Returns whether the move was valid.
+        """
         if new_pos in get_conns(self.board_graph, last_pos):
             self.pos = new_pos
             self.rect.center = self.board.get_tile_centre_pos(self.pos)
@@ -61,13 +86,13 @@ class Player(pygame.sprite.Sprite):
             return True
         return False
 
-    def render_to(self, window):
+    def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)
 
 
 # Linked List
 class PlayerList:
-    def __init__(self, board, resources):
+    def __init__(self, board: Board, resources: SpriteSheet):
         self.board = board
 
         self.resources = {
@@ -83,15 +108,17 @@ class PlayerList:
 
         self.len_cycle = 0  # The length of one cycle (as list is infinite).
 
-    def get_curr(self):
+    def get_curr(self) -> Player:
         return self.curr
 
-    def cycle_curr(self, num_turns=1):
+    def cycle_curr(self, num_turns: int = 1) -> Player:
         for _ in range(num_turns):
             self.curr = self.curr.next
         return self.curr
 
-    def add(self, name, image_num, colour):
+    def add(
+        self, name: str, image_num: int, colour: tuple[int, int, int]
+    ) -> None:
         new = Player(
             name,
             self.len_cycle,
@@ -118,19 +145,16 @@ class PlayerList:
         if self.curr is None:
             self.curr = self.first
 
-    def get_list(self):
+    def get_list(self) -> list:
         if self.first is None:
             return []
 
-        result = []
+        result = [self.first]
 
-        curr = self.first
+        curr = self.first.next
 
-        while True:
+        while curr != self.first:
             result.append(curr)
             curr = curr.next
-
-            if curr == self.first:
-                break
 
         return result

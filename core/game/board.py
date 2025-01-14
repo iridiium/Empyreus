@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+# avoiding circular imports in type hints
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .player import Player
+    from .sprite_sheet import SpriteSheet
+
 import pygame
 
 from collections import defaultdict
@@ -13,8 +20,6 @@ from .helper import (
     get_min_conns_dist,
     merge_sort,
 )
-from .player import Player
-from .sprite_sheet import SpriteSheet
 
 
 class Board:
@@ -127,7 +132,7 @@ class Board:
 
         return resource_type
 
-    def get_tile_centre_pos(self, pos):
+    def get_tile_centre_pos(self, pos: tuple[int, int]) -> tuple[int, int]:
         return self.matrix[pos[1]][pos[0]].get_centre_pos()
 
     def board_pos_from_coord(
@@ -218,7 +223,7 @@ class Board:
 
         return graph
 
-    def get_rand_planet_pos(self) -> tuple[int, int]:
+    def get_rand_non_empty_pos(self) -> tuple[int, int]:
         return choice(list(self.graph))
 
     def get_type_from_board_pos(self, board_pos: tuple[int, int]) -> str:

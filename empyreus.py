@@ -1,9 +1,10 @@
 import sys
 import pygame
 
-from core.main import main
+from core.main import MainRun
 
 if __name__ == "__main__":
-    main()
+    main = MainRun()
+    main.run_game_loop()
     pygame.quit()
     sys.exit()

@@ -3,6 +3,8 @@ import pygame.freetype
 
 from random import choice, randrange
 
+from .asset_loader import load_assets
+
 from .game.background import Background
 from .game.board import Board
 from .game.helper import gen_rand_light_colour
@@ -12,150 +14,130 @@ from .game.sprite_sheet import SpriteSheet
 from .ui.actions import UIActions
 from .ui.text import UIText
 
-# Constants
 
-WINDOW_SIZE = (1024, 640)
+class MainRun:
+    def __init__(self):
+        (
+            self.background,
+            self.sprite_sheet_tiles,
+            self.sprite_sheet_resources,
+            self.font_size,
+            self.font_bold_size,
+            self.font,
+            self.font_bold,
+        ) = load_assets()
 
-# ---- Palette ----
-WHITE = (255, 255, 255)
-GREY = (116, 117, 114)
-DARK_PURPLE = (16, 1, 41)
-# -----------------
+        self.window_size = (1024, 640)
 
-BOARD_DIMS = (6, 6)
+        self.colours = {
+            "white": (255, 255, 255),
+            "grey": (116, 117, 114),
+            "dark_purple": (16, 1, 41),
+        }
 
-TILE_BASE_SIZE = (72, 72)
-TILE_BORDER_SIZE = (8, 8)
-TILE_SIZE = (80, 80)
-FONT_SIZE = 20
+        self.board_dims = (6, 6)
+        self.tile_base_size = (72, 72)
+        self.tile_border_size = (8, 8)
+        self.tile_size = (80, 80)
 
-NUM_PLAYERS = 2
+        self.num_players = 2
 
-BACKGROUND = Background(
-    image_file_path="./assets/images/back_1024x640.png", pos=(0, 0)
-)
-
-PLANETS_ASTEROIDS = SpriteSheet(
-    image_file_path="./assets/images/CelestialObjects_PlanetsAsteroids.png",
-    sprite_size=(64, 64),
-    names={
-        "planet_ice": (0, 0),
-        "empty": (0, 1),
-        "planet_ore": (1, 0),
-        "planet_uranium": (1, 1),
-        "planet_carbon": (2, 0),
-        "planet_helium": (2, 1),
-        "asteroid": (3, 0),
-        "asteroid_small": (3, 1),
-    },
-)
-
-RESOURCES = SpriteSheet(
-    image_file_path="./assets/images/MiningIcons.png",
-    sprite_size=(32, 32),
-    names={
-        "carbon": (1, 1),
-        "helium": (8, 2),
-        "ice": (4, 2),
-        "ore": (5, 1),
-        "uranium": (7, 3),
-    },
-)
-
-BOARD = Board(
-    dims=BOARD_DIMS,
-    line_colour=WHITE,
-    tile_colour=GREY,
-    tile_base_size=TILE_BASE_SIZE,
-    tile_border_size=TILE_BORDER_SIZE,
-    window_size=WINDOW_SIZE,
-    sprite_sheet=PLANETS_ASTEROIDS,
-    icon_sprite_sheet=RESOURCES,
-    tiles={
-        "planet_carbon": 3,
-        "planet_helium": 3,
-        "planet_ice": 3,
-        "planet_ore": 3,
-        "planet_uranium": 3,
-        "asteroid": 2,
-        "asteroid_small": 2,
-        "empty": float("inf"),
-    },
-)
-
-
-# Game loop
-def main():
-    pygame.init()
-
-    FONT = pygame.freetype.Font(
-        "./assets/fonts/Roboto/Roboto-Regular.ttf", FONT_SIZE
-    )
-
-    FONT_BOLD = pygame.freetype.Font(
-        "./assets/fonts/Roboto/Roboto-Bold.ttf", FONT_SIZE
-    )
-
-    window = pygame.display.set_mode(WINDOW_SIZE)
-    clock = pygame.time.Clock()
-
-    board_pos = BOARD.get_pos()
-
-    players = PlayerList(BOARD, RESOURCES)
-    players.add("Aloysius", 1, gen_rand_light_colour())
-    players.add("Bartholomew", 2, gen_rand_light_colour())
-    players.add("Cuthbert", 3, gen_rand_light_colour())
-
-    total_turns = 0
-
-    running = True
-    while running:
-        clock.tick(100)
-
-        window.fill(WHITE)
-        window.blit(BACKGROUND.image, BACKGROUND.rect)
-
-        UI_ACTIONS = UIActions(
-            BOARD, (4, 1), (BOARD.get_size()[0] / 4, 40), (8, 8), WHITE
-        )
-        UI_TEXT = UIText(
-            BOARD,
-            FONT,
-            FONT_BOLD,
-            FONT_SIZE,
-            FONT_SIZE * 2,
-            players,
-            WHITE,
+        self.board = Board(
+            dims=self.board_dims,
+            line_colour=self.colours["white"],
+            tile_colour=self.colours["grey"],
+            tile_base_size=self.tile_base_size,
+            tile_border_size=self.tile_border_size,
+            window_size=self.window_size,
+            sprite_sheet=self.sprite_sheet_tiles,
+            icon_sprite_sheet=self.sprite_sheet_resources,
+            tiles={
+                "planet_carbon": 3,
+                "planet_helium": 3,
+                "planet_ice": 3,
+                "planet_ore": 3,
+                "planet_uranium": 3,
+                "asteroid": 2,
+                "asteroid_small": 2,
+                "empty": float("inf"),
+            },
         )
 
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_board_coord = BOARD.board_pos_from_coord(mouse_pos)
+        self.window = pygame.display.set_mode(self.window_size)
+        self.clock = pygame.time.Clock()
 
-        curr_player = players.get_curr()
-        curr_player_pos = curr_player.get_pos()
+        self.board_pos = self.board.get_pos()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if (
-                    mouse_board_coord[0] is not None
-                    and mouse_board_coord[1] is not None
-                ):
-                    valid_move = curr_player.move(
-                        mouse_board_coord, curr_player_pos
-                    )
+        self.players = PlayerList(self.board, self.sprite_sheet_resources)
+        self.players.add("Aloysius", 1, gen_rand_light_colour())
+        self.players.add("Bartholomew", 2, gen_rand_light_colour())
+        self.players.add("Cuthbert", 3, gen_rand_light_colour())
 
-                    if valid_move:
-                        players.cycle_curr()
-                        total_turns += 1
+        self.ui_actions = UIActions(
+            self.board,
+            (4, 1),
+            (self.board.get_size()[0] / 4, 40),
+            (8, 8),
+            self.players,
+            self.colours["white"],
+        )
+        self.ui_text = UIText(
+            self.board,
+            self.font,
+            self.font_bold,
+            self.font_size,
+            self.font_size * 2,
+            self.players,
+            self.colours["white"],
+        )
 
-        UI_ACTIONS.render_to(window)
-        UI_TEXT.render_to(window, total_turns, curr_player, mouse_pos)
+        self.total_turns = 0
+        self.running = True
 
-        BOARD.render_to(window, mouse_board_coord, curr_player)
+    def run_game_loop(self):
+        pygame.init()
 
-        for player_num, player in enumerate(players.get_list()):
-            player.render_to(window)
+        while self.running:
+            self.window.fill(self.colours["white"])
+            self.window.blit(self.background.image, self.background.rect)
 
-        pygame.display.flip()
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_board_coord = self.board.board_pos_from_coord(mouse_pos)
+
+            curr_player = self.players.get_curr()
+            curr_player_pos = curr_player.get_pos()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if (
+                        mouse_board_coord[0] is not None
+                        and mouse_board_coord[1] is not None
+                    ):
+                        valid_move = curr_player.move(
+                            mouse_board_coord, curr_player_pos
+                        )
+
+                        if valid_move:
+                            self.players.cycle_curr()
+                            self.total_turns += 1
+                    elif action_idx := self.ui_actions.check_for_action(
+                        mouse_pos
+                    ):
+                        self.ui_actions.handle_action(action_idx)
+
+            self.ui_actions.render_to(self.window)
+
+            self.ui_text.render_to(
+                self.window, self.total_turns, curr_player, mouse_pos
+            )
+
+            self.board.render_to(self.window, mouse_board_coord, curr_player)
+
+            for player_num, player in enumerate(self.players.get_list()):
+                player.render_to(self.window)
+
+            pygame.display.flip()
+
+            self.clock.tick(100)
