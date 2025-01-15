@@ -59,7 +59,9 @@ class MainRun:
                 "planet_uranium": 3,
                 "asteroid": 2,
                 "asteroid_small": 2,
-                "trading_station": 2,
+                "trader_alpha": 1,
+                "trader_beta": 1,
+                "trader_gamma": 1,
                 "empty": float("inf"),
             },
         )
@@ -123,11 +125,11 @@ class MainRun:
                         mouse_board_coord[0] is not None
                         and mouse_board_coord[1] is not None
                     ):
-                        valid_move = curr_player.move(
+                        actions_left = curr_player.move(
                             mouse_board_coord, curr_player_pos
                         )
 
-                        if valid_move:
+                        if actions_left == 0:
                             self.players.cycle_curr()
                             self.total_turns += 1
                     elif action_idx := self.ui_actions.check_for_action(

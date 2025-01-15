@@ -14,8 +14,7 @@ from .helper import deepcopy_nested_dict, get_conns
 from .sprite_sheet import SpriteSheet
 
 
-class Player(pygame.sprite.Sprite):
-
+class Player:
     def __init__(
         self,
         name: str,
@@ -25,8 +24,6 @@ class Player(pygame.sprite.Sprite):
         board: Board,
         resources: dict,
     ):
-        super().__init__()
-
         self.name = name
         self.num = num
         self.colour = colour
@@ -34,11 +31,13 @@ class Player(pygame.sprite.Sprite):
         self.board = board
         self.resources = deepcopy_nested_dict(resources)
 
+        self.board_graph = board.get_graph()
         self.pos = board.get_rand_non_empty_pos()
         self.rect = self.image.get_rect()
         self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
-        self.board_graph = board.get_graph()
+        self.actions_per_turn = 2
+        self.actions_left = 2
 
         self.next = None
 
@@ -60,6 +59,9 @@ class Player(pygame.sprite.Sprite):
     def get_resources(self) -> dict:
         return self.resources
 
+    def reset_actions_left(self) -> None:
+        self.actions_left = self.actions_per_turn
+
     def get_ship_image_file_location(self) -> str:
         return random.choice(os.listdir("./assets/images/tiny-spaceships"))
 
@@ -68,23 +70,19 @@ class Player(pygame.sprite.Sprite):
         Moves the player from one non-empty tile to another non-empty tile
         connected to it.
 
-        Returns whether the move was valid.
+        Returns the number of moves left for the player that turn.
         """
         if new_pos in get_conns(self.board_graph, last_pos):
+            self.actions_left -= 1
             self.pos = new_pos
             self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
-            new_pos_planet_type = self.board.get_type_from_board_pos(new_pos)
-            new_pos_resource_type = (
-                self.board.get_resource_type_from_planet_type(
-                    new_pos_planet_type
-                )
-            )
-
-            if new_pos_resource_type:
+            if new_pos_resource_type := self.board.get_resource_type_from_planet_type(
+                self.board.get_type_from_board_pos(new_pos)
+            ):
                 self.resources[new_pos_resource_type]["amount"] += 1
-            return True
-        return False
+
+            return self.actions_left
 
     def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)
@@ -119,8 +117,10 @@ class PlayerList:
 
     def cycle_curr(self, num_turns: int = 1) -> Player:
         for _ in range(num_turns):
-            self.curr = self.curr.next
             self.turns_taken += 1
+
+            self.curr = self.curr.next
+            self.curr.reset_actions_left()
         return self.curr
 
     def add(self, name: str, colour: tuple[int, int, int]) -> None:
