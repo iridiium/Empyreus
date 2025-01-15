@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .board import Board
 
+import os
 import pygame
+import random
 
 from .helper import deepcopy_nested_dict, get_conns
 from .sprite_sheet import SpriteSheet
@@ -19,7 +21,7 @@ class Player(pygame.sprite.Sprite):
         name: str,
         num: int,
         colour: tuple[int, int, int],
-        image_num: int,
+        image_file_path: str,
         board: Board,
         resources: dict,
     ):
@@ -28,9 +30,7 @@ class Player(pygame.sprite.Sprite):
         self.name = name
         self.num = num
         self.colour = colour
-        self.image = pygame.image.load(
-            self.get_ship_image_file_location(image_num)
-        )
+        self.image = pygame.image.load(image_file_path)
         self.board = board
         self.resources = deepcopy_nested_dict(resources)
 
@@ -60,8 +60,8 @@ class Player(pygame.sprite.Sprite):
     def get_resources(self) -> dict:
         return self.resources
 
-    def get_ship_image_file_location(self, image_num: int) -> str:
-        return f"./assets/images/tiny-spaceships/tiny_ship{image_num}.png"
+    def get_ship_image_file_location(self) -> str:
+        return random.choice(os.listdir("./assets/images/tiny-spaceships"))
 
     def move(self, new_pos: tuple[int, int], last_pos: tuple[int, int]) -> bool:
         """
@@ -92,9 +92,10 @@ class Player(pygame.sprite.Sprite):
 
 # Linked List
 class PlayerList:
-    def __init__(self, board: Board, resources: SpriteSheet):
+    def __init__(
+        self, board: Board, resources: SpriteSheet, image_folder_path: str
+    ):
         self.board = board
-
         self.resources = {
             resource_name: {
                 "amount": 0,
@@ -102,6 +103,7 @@ class PlayerList:
             }
             for resource_name in resources.names
         }
+        self.image_folder_path = image_folder_path
 
         self.curr = None  # The player who is currently taking their turn.
         self.first = None  # The first player of the turn order.
@@ -121,14 +123,12 @@ class PlayerList:
             self.turns_taken += 1
         return self.curr
 
-    def add(
-        self, name: str, image_num: int, colour: tuple[int, int, int]
-    ) -> None:
+    def add(self, name: str, colour: tuple[int, int, int]) -> None:
         new = Player(
             name,
             self.len_cycle,
             colour,
-            image_num,
+            f"{self.image_folder_path}/{random.choice(os.listdir(self.image_folder_path))}",
             self.board,
             self.resources,
         )

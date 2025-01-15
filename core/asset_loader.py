@@ -14,7 +14,7 @@ def load_assets():
 
     # ---- Sprite Sheets ----
     sprite_sheet_tiles = SpriteSheet(
-        image_file_path="./assets/images/CelestialObjects_PlanetsAsteroids.png",
+        image_file_path="./assets/images/CelestialObjects_Tiles.png",
         sprite_size=(64, 64),
         names={
             "planet_ice": (0, 0),
@@ -25,6 +25,7 @@ def load_assets():
             "planet_helium": (2, 1),
             "asteroid": (3, 0),
             "asteroid_small": (3, 1),
+            "trading_station": (4, 0),
         },
     )
 

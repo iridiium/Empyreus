@@ -59,6 +59,7 @@ class MainRun:
                 "planet_uranium": 3,
                 "asteroid": 2,
                 "asteroid_small": 2,
+                "trading_station": 2,
                 "empty": float("inf"),
             },
         )
@@ -68,10 +69,14 @@ class MainRun:
 
         self.board_pos = self.board.get_pos()
 
-        self.players = PlayerList(self.board, self.sprite_sheet_resources)
-        self.players.add("Aloysius", 1, gen_rand_light_colour())
-        self.players.add("Bartholomew", 2, gen_rand_light_colour())
-        self.players.add("Cuthbert", 3, gen_rand_light_colour())
+        self.players = PlayerList(
+            self.board,
+            self.sprite_sheet_resources,
+            "./assets/images/tiny-spaceships",
+        )
+        self.players.add("Aloysius", gen_rand_light_colour())
+        self.players.add("Bartholomew", gen_rand_light_colour())
+        self.players.add("Cuthbert", gen_rand_light_colour())
 
         self.ui_actions = UIActions(
             self.board,
