@@ -115,7 +115,7 @@ class UIText:
                         0.75 * self.board_pos_end[1]
                         + (resource_index + 0.5) * 1.5 * self.font_size,
                     ),
-                    f"{resource_name}: {curr_player_resources[resource_name]["amount"]}",
+                    f"{resource_name}: {curr_player_resources[resource_name]['amount']}",
                     self.text_colour,
                 )
 
