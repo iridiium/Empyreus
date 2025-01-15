@@ -79,24 +79,24 @@ class MainRun:
         self.players.add("Cuthbert", gen_rand_light_colour())
 
         self.ui_actions = UIActions(
-            self.board,
-            self.font,
-            self.font_size,
-            (4, 1),
-            (self.board.get_size()[0] / 4, 40),
-            (8, 8),
-            self.players,
-            self.colours["white"],
-            self.colours["dark_purple"],
+            board=self.board,
+            players=self.players,
+            dims=(4, 1),
+            font=self.font,
+            font_size=self.font_size,
+            elem_base_size=(self.board.get_size()[0] / 4, 40),
+            elem_border_size=(8, 8),
+            text_colour=self.colours["dark_purple"],
+            background_colour=self.colours["white"],
         )
         self.ui_text = UIText(
-            self.board,
-            self.font,
-            self.font_bold,
-            self.font_size,
-            self.font_size * 2,
-            self.players,
-            self.colours["white"],
+            board=self.board,
+            players=self.players,
+            font=self.font,
+            font_bold=self.font_bold,
+            font_size=self.font_size,
+            font_bold_size=self.font_size * 2,
+            text_colour=self.colours["white"],
         )
 
         self.total_turns = 0

@@ -10,24 +10,24 @@ class UIActions:
     def __init__(
         self,
         board: Board,
+        players: PlayerList,
+        dims: tuple[int, int],
         font: pygame.freetype.Font,
         font_size: int,
-        dims: tuple[int, int],
-        elem_size: tuple[int, int],
+        elem_base_size: tuple[int, int],
         elem_border_size: tuple[int, int],
-        players: PlayerList,
-        colour: tuple[int, int, int],
         text_colour: tuple[int, int, int],
+        background_colour: tuple[int, int, int],
     ):
         self.board = board
+        self.players = players
+        self.dims = dims
         self.font = font
         self.font_size = font_size
-        self.dims = dims
-        self.elem_base_size = elem_size
+        self.elem_base_size = elem_base_size
         self.elem_border_size = elem_border_size
-        self.players = players
-        self.colour = colour
         self.text_colour = text_colour
+        self.background_colour = background_colour
 
         self.elem_size = (
             self.elem_base_size[0] + self.elem_border_size[0],
@@ -45,10 +45,10 @@ class UIActions:
 
         self.actions = [
             [
-                {"name": "Skip", "function": self.skip_turn},
-                {"name": "Skip", "function": self.skip_turn},
-                {"name": "Skip", "function": self.skip_turn},
-                {"name": "Skip", "function": self.skip_turn},
+                {"name": "End", "func": lambda: self.players.cycle_curr()},
+                {"name": "End", "func": lambda: self.players.cycle_curr()},
+                {"name": "End", "func": lambda: self.players.cycle_curr()},
+                {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],
         ]
 
@@ -65,14 +65,14 @@ class UIActions:
         )
 
     def handle_action(self, action_idx):
-        return self.actions[action_idx[1]][action_idx[0]]["function"]()
+        return self.actions[action_idx[1]][action_idx[0]]["func"]()
 
     def render_to(self, window: pygame.display):
         for y in range(self.dims[1]):
             for x in range(self.dims[0]):
                 action_rect = pygame.draw.rect(
                     window,
-                    self.colour,
+                    self.background_colour,
                     (
                         self.pos[0] + x * self.elem_size[0],
                         self.pos[1] + y * self.elem_size[1],
@@ -90,6 +90,3 @@ class UIActions:
                     center=action_rect.center
                 )
                 window.blit(action_text[0], action_text_rect)
-
-    def skip_turn(self):
-        return self.players.cycle_curr()

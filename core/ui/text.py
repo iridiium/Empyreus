@@ -8,19 +8,19 @@ class UIText:
     def __init__(
         self,
         board: Board,
+        players: PlayerList,
         font: pygame.freetype.Font,
         font_bold: pygame.freetype.Font,
         font_size: int,
         font_bold_size: int,
-        players: PlayerList,
         text_colour: tuple[int, int, int],
     ):
         self.board = board
+        self.players = players
         self.font = font
         self.font_bold = font_bold
         self.font_size = font_size
         self.font_bold_size = font_bold_size
-        self.players = players
         self.text_colour = text_colour
 
         self.board_pos = self.board.get_pos()
@@ -102,7 +102,7 @@ class UIText:
                 resource_icon_image_rect = pygame.Rect(
                     resource_text_rect.left,
                     resource_text_rect.top
-                    + (resource_index + 0.5) * 1.5 * self.font_size,
+                    + (resource_index + 0.5) * 1.45 * self.font_size,
                     self.font_size,
                     self.font_size,
                 )
