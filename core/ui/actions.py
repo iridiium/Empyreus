@@ -45,7 +45,10 @@ class UIActions:
 
         self.actions = [
             [
-                {"name": "End", "func": lambda: self.players.cycle_curr()},
+                {
+                    "name": "Trade",
+                    "func": lambda: self.players.get_curr().trade(),
+                },
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},

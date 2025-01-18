@@ -59,9 +59,9 @@ class MainRun:
                 "planet_uranium": 3,
                 "asteroid": 2,
                 "asteroid_small": 2,
-                "trader_alpha": 1,
-                "trader_beta": 1,
-                "trader_gamma": 1,
+                "trader_A": 1,
+                "trader_B": 1,
+                "trader_C": 1,
                 "empty": float("inf"),
             },
         )

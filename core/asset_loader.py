@@ -25,9 +25,9 @@ def load_assets():
             "planet_helium": (2, 1),
             "asteroid": (3, 0),
             "asteroid_small": (3, 1),
-            "trader_alpha": (4, 0),
-            "trader_beta": (4, 1),
-            "trader_gamma": (5, 0),
+            "trader_A": (4, 0),
+            "trader_B": (4, 1),
+            "trader_C": (5, 0),
         },
     )
 

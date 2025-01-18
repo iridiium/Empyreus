@@ -65,7 +65,7 @@ class Player:
     def get_ship_image_file_location(self) -> str:
         return random.choice(os.listdir("./assets/images/tiny-spaceships"))
 
-    def move(self, new_pos: tuple[int, int], last_pos: tuple[int, int]) -> bool:
+    def move(self, new_pos: tuple[int, int], last_pos: tuple[int, int]) -> int:
         """
         Moves the player from one non-empty tile to another non-empty tile
         connected to it.
@@ -77,12 +77,30 @@ class Player:
             self.pos = new_pos
             self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
-            if new_pos_resource_type := self.board.get_resource_type_from_planet_type(
+            if new_pos_resource_type := self.board.get_resource_type_from_tile_type(
                 self.board.get_type_from_board_pos(new_pos)
             ):
                 self.resources[new_pos_resource_type]["amount"] += 1
 
             return self.actions_left
+
+    def trade(self) -> bool:
+        """
+        Allows for a trade of one resource to another.
+        This can only be done whilst on a trade station tile.
+
+        Returns whether the trade was successful.
+        """
+        if not self.board.get_type_from_board_pos(self.pos).startswith(
+            "trader"
+        ):
+            return False
+
+        trade = self.board.get_matrix()[self.pos[1]][self.pos[0]].get_trade()
+        self.resources[trade[0]] -= trade[1]
+
+        for _ in range(trade[1]):
+            self.resources[random.choice(self.resources)] += 1
 
     def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)
@@ -109,7 +127,7 @@ class PlayerList:
         self.len_cycle = 0  # The length of one cycle (as list is infinite).
         self.turns_taken = 0  # Number of turns taken.
 
-    def get_curr(self) -> Player:
+    def get_curr(self) -> None | Player:
         return self.curr
 
     def get_turns_taken(self) -> int:
@@ -119,7 +137,9 @@ class PlayerList:
         for _ in range(num_turns):
             self.turns_taken += 1
 
-            self.curr = self.curr.next
+            if self.curr.next:
+                self.curr = self.curr.next
+
             self.curr.reset_actions_left()
         return self.curr
 

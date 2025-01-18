@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 import pygame
 
 from collections import defaultdict
-from random import randint, choice
+from random import choice, randint, sample
 from typing import Iterator, TypedDict
 
 from .helper import (
@@ -20,6 +20,7 @@ from .helper import (
     get_min_conns_dist,
     merge_sort,
 )
+from .tile import Tile, TraderTile
 
 
 class Board:
@@ -44,15 +45,22 @@ class Board:
         self.window_size = window_size
         self.sprite_sheet = sprite_sheet
         self.icon_sprite_sheet = icon_sprite_sheet
-        self.tile_order = self.order_tiles(tiles)
 
         self.num_planets = sum(
-            list(filter(lambda num: num > 0, tiles.values()))
+            list(filter(lambda amount: amount > 0, tiles.values()))
         )
+        self.num_traders = sum(
+            amount
+            for type, amount in tiles.items()
+            if type.startswith("trader")
+        )
+
+        self.tile_order = self.order_tiles(tiles)
         self.tile_size: tuple[int, int] = (
             tile_base_size[0] + tile_border_size[0],
             tile_base_size[1] + tile_border_size[1],
         )
+
         self.pos = (
             int(
                 (
@@ -78,15 +86,31 @@ class Board:
 
         self.matrix = [
             [
-                Tile(
-                    centre_pos=(
-                        int((i + 0.5) * self.tile_size[0] + self.pos[0]),
-                        int((j + 0.5) * self.tile_size[1] + self.pos[1]),
-                    ),
-                    colour=tile_colour,
-                    tile=next(self.tile_order),
-                    base_size=tile_base_size,
-                    border_size=tile_border_size,
+                (
+                    TraderTile(
+                        centre_pos=(
+                            int((i + 0.5) * self.tile_size[0] + self.pos[0]),
+                            int((j + 0.5) * self.tile_size[1] + self.pos[1]),
+                        ),
+                        colour=tile_colour,
+                        tile=curr_tile,
+                        base_size=tile_base_size,
+                        border_size=tile_border_size,
+                    )
+                    if self.get_tile_behaviour_type_from_tile_type(
+                        (curr_tile := next(self.tile_order))["type"]
+                    )
+                    == "trader"
+                    else Tile(
+                        centre_pos=(
+                            int((i + 0.5) * self.tile_size[0] + self.pos[0]),
+                            int((j + 0.5) * self.tile_size[1] + self.pos[1]),
+                        ),
+                        colour=tile_colour,
+                        tile=curr_tile,
+                        base_size=tile_base_size,
+                        border_size=tile_border_size,
+                    )
                 )
                 for i in range(self.dims[0])
             ]
@@ -97,6 +121,9 @@ class Board:
 
     def get_pos_end(self) -> tuple[int, int]:
         return self.pos_end
+
+    def get_matrix(self) -> list[list[Tile | TraderTile]]:
+        return self.matrix
 
     def get_graph(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
         return self.graph
@@ -117,20 +144,28 @@ class Board:
         return (self.pos_end[0] - self.pos[0], self.pos_end[1] - self.pos[1])
 
     def get_icon_sprite_from_type(self, type) -> None | pygame.Surface:
-        resource_type = self.get_resource_type_from_planet_type(type)
+        resource_type = self.get_resource_type_from_tile_type(type)
 
         if resource_type:
             return self.icon_sprite_sheet.get_sprite_from_name(resource_type)
 
         return None
 
-    def get_resource_type_from_planet_type(self, type) -> None | pygame.Surface:
+    def get_resource_type_from_tile_type(self, type) -> None | str:
+        resource_names = self.icon_sprite_sheet.get_names()
         resource_type = type.split("_")[-1]
 
-        if resource_type not in self.icon_sprite_sheet.get_names():
-            return None
+        if resource_type in resource_names:  # For planets
+            return resource_type
+        elif (
+            resource_type in "QWERTYUIOPASDFGHJKLZXCVBNM"
+        ):  # For trading stations
+            return choice(list(resource_names.keys()))
 
-        return resource_type
+        return None
+
+    def get_tile_behaviour_type_from_tile_type(self, type) -> str:
+        return type.split("_")[0]
 
     def get_tile_centre_pos(self, pos: tuple[int, int]) -> tuple[int, int]:
         return self.matrix[pos[1]][pos[0]].get_centre_pos()
@@ -232,6 +267,13 @@ class Board:
     def order_tiles(self, tiles: dict[str, int]) -> Iterator[dict]:
         tile_order: list[dict] = []
 
+        trader_types: Iterator[str] = iter(
+            sample(
+                sorted(self.icon_sprite_sheet.get_names().keys()),
+                self.num_traders,
+            )
+        )
+
         total = 0
 
         for tile_type, tile_amount in tiles.items():
@@ -241,17 +283,18 @@ class Board:
                 total += tile_amount
 
             for _ in range(tile_amount):
+                tile_attrs = {
+                    "sprite": self.sprite_sheet.get_sprite_from_name(tile_type),
+                    "type": tile_type,
+                    "icon_sprite": self.get_icon_sprite_from_type(tile_type),
+                }
+
+                if tile_type.startswith("trader"):
+                    tile_attrs["trade_type"] = next(trader_types)
+
                 tile_order.insert(
                     randint(0, len(tile_order)),
-                    {
-                        "sprite": self.sprite_sheet.get_sprite_from_name(
-                            tile_type
-                        ),
-                        "type": tile_type,
-                        "icon_sprite": self.get_icon_sprite_from_type(
-                            tile_type
-                        ),
-                    },
+                    tile_attrs,
                 )
 
         return iter(tile_order)
@@ -297,49 +340,3 @@ class Board:
 
                 if tile_icon_image := tile.get_icon_image():
                     window.blit(tile_icon_image, tile_rect)
-
-
-class Tile:
-
-    def __init__(
-        self,
-        centre_pos: tuple[int, int],
-        colour: tuple[int, int, int],
-        tile,
-        base_size: tuple[int, int],
-        border_size: tuple[int, int],
-    ):
-        self.centre_pos = centre_pos
-        self.colour = colour
-        self.tile = tile
-        self.base_size = base_size
-        self.border_size = border_size
-
-        self.image = tile["sprite"]
-        self.type = tile["type"]
-        self.icon_image = tile["icon_sprite"]
-
-        self.size = self.base_size + self.border_size
-
-        self.rect = self.image.get_rect()
-
-    def get_centre_pos(self) -> tuple[int, int]:
-        return self.centre_pos
-
-    def get_colour(self) -> tuple[int, int, int]:
-        return self.colour
-
-    def get_icon_image(self) -> pygame.Surface:
-        return self.icon_image
-
-    def get_image(self) -> pygame.Surface:
-        return self.image
-
-    def get_type(self) -> str:
-        return self.type
-
-    def get_rect_in_board(self) -> pygame.Rect:
-        rect_in_board = self.image.get_rect()
-        rect_in_board.center = self.centre_pos
-
-        return rect_in_board
