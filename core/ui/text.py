@@ -94,10 +94,14 @@ class UIText:
         )
 
         if resource_text_rect.collidepoint(mouse_pos):
-            for resource_index, (resource_name, resource_attrs) in enumerate(
+            for resource_index, (resource_name, resource_amount) in enumerate(
                 curr_player_resources.items()
             ):
-                resource_icon_image = resource_attrs["icon_image"]
+                resource_icon_image = (
+                    self.board.get_icon_sprite_sheet().get_sprite_from_name(
+                        resource_name
+                    )
+                )
 
                 resource_icon_image_rect = pygame.Rect(
                     resource_text_rect.left,
@@ -115,7 +119,7 @@ class UIText:
                         0.75 * self.board_pos_end[1]
                         + (resource_index + 0.5) * 1.5 * self.font_size,
                     ),
-                    f"{resource_name}: {curr_player_resources[resource_name]['amount']}",
+                    f"{resource_name}: {curr_player_resources[resource_name]}",
                     self.text_colour,
                 )
 

@@ -103,15 +103,3 @@ def gen_rand_dark_colour():
 
 def gen_rand_light_colour():
     return tuple(randrange(128, 255) for _ in range(3))
-
-
-def deepcopy_nested_dict(nested_dict):
-    res = {}
-    for key, value in nested_dict.items():
-        res[key] = {}
-        for nested_key, nested_value in value.items():
-            if isinstance(nested_value, pygame.Surface):
-                res[key][nested_key] = nested_value.copy()
-            else:
-                res[key][nested_key] = nested_value
-    return res

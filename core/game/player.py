@@ -10,7 +10,7 @@ import os
 import pygame
 import random
 
-from .helper import deepcopy_nested_dict, get_conns
+from .helper import get_conns
 from .sprite_sheet import SpriteSheet
 
 
@@ -29,7 +29,9 @@ class Player:
         self.colour = colour
         self.image = pygame.image.load(image_file_path)
         self.board = board
-        self.resources = deepcopy_nested_dict(resources)
+        self.resources = {
+            resource_name: 0 for resource_name in resources.keys()
+        }
 
         self.board_graph = board.get_graph()
         self.pos = board.get_rand_non_empty_pos()
@@ -59,11 +61,11 @@ class Player:
     def get_resources(self) -> dict:
         return self.resources
 
-    def reset_actions_left(self) -> None:
-        self.actions_left = self.actions_per_turn
-
     def get_ship_image_file_location(self) -> str:
         return random.choice(os.listdir("./assets/images/tiny-spaceships"))
+
+    def reset_actions_left(self) -> None:
+        self.actions_left = self.actions_per_turn
 
     def move(self, new_pos: tuple[int, int], last_pos: tuple[int, int]) -> int:
         """
@@ -80,7 +82,7 @@ class Player:
             if new_pos_resource_type := self.board.get_resource_type_from_tile_type(
                 self.board.get_type_from_board_pos(new_pos)
             ):
-                self.resources[new_pos_resource_type]["amount"] += 1
+                self.resources[new_pos_resource_type] += 1
 
             return self.actions_left
 
@@ -99,8 +101,7 @@ class Player:
         trade = self.board.get_matrix()[self.pos[1]][self.pos[0]].get_trade()
         self.resources[trade[0]] -= trade[1]
 
-        for _ in range(trade[1]):
-            self.resources[random.choice(self.resources)] += 1
+        self.resources[random.choice(list(self.resources.keys()))] += 1
 
     def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)

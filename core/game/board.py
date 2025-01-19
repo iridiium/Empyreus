@@ -119,6 +119,12 @@ class Board:
 
         self.graph = self.create_graph(self.matrix)
 
+    def get_icon_sprite_sheet(self) -> SpriteSheet:
+        return self.icon_sprite_sheet
+
+    def get_pos(self) -> tuple[int, int]:
+        return self.pos
+
     def get_pos_end(self) -> tuple[int, int]:
         return self.pos_end
 
@@ -127,9 +133,6 @@ class Board:
 
     def get_graph(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
         return self.graph
-
-    def get_pos(self) -> tuple[int, int]:
-        return self.pos
 
     def get_tile_border_size(self) -> tuple[int, int]:
         return self.tile_border_size
