@@ -43,6 +43,9 @@ class Player:
 
         self.next = None
 
+    def get_actions_left(self) -> int:
+        return self.actions_left
+
     def get_colour(self) -> tuple[int, int, int]:
         return self.colour
 

@@ -82,6 +82,7 @@ def merge_sort(arr, key):
 
 
 def merge(left, right, key):
+    """Merges two lists together. Order is determined by key()."""
     result = []
     i, j = 0, 0
 

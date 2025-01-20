@@ -3,8 +3,6 @@ import pygame
 from ..game.board import Board
 from ..game.player import Player, PlayerList
 
-from .action_functions import skip_turn
-
 from ..scene_manager import SceneManager
 
 
