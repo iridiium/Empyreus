@@ -98,8 +98,8 @@ def merge(left, right, key):
 
 # Other
 def gen_rand_dark_colour():
-    return tuple(randrange(0, 128) for _ in range(3))
+    return tuple(randrange(0, 160) for _ in range(3))
 
 
 def gen_rand_light_colour():
-    return tuple(randrange(128, 255) for _ in range(3))
+    return tuple(randrange(95, 255) for _ in range(3))

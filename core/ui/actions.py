@@ -5,8 +5,10 @@ from ..game.player import Player, PlayerList
 
 from .action_functions import skip_turn
 
+from ..scene_manager import SceneManager
 
-class UIActions:
+
+class UIActions(SceneManager):
     def __init__(
         self,
         board: Board,
@@ -19,6 +21,8 @@ class UIActions:
         text_colour: tuple[int, int, int],
         background_colour: tuple[int, int, int],
     ):
+        super(SceneManager, self).__init__()
+
         self.board = board
         self.players = players
         self.dims = dims
@@ -46,10 +50,13 @@ class UIActions:
         self.actions = [
             [
                 {
+                    "name": "Help",
+                    "func": lambda: self.set_scene("help"),
+                },
+                {
                     "name": "Trade",
                     "func": lambda: self.players.get_curr().trade(),
                 },
-                {"name": "End", "func": lambda: self.players.cycle_curr()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],

@@ -32,9 +32,8 @@ class UIText:
     def render_to(
         self,
         window: pygame.display,
-        total_turns: int,
-        curr_player: Player,
         mouse_pos: bool,
+        curr_player: Player,
     ) -> None:
         self.render_player_list_text_to(window)
         self.render_player_resource_text_to(window, mouse_pos)
@@ -143,7 +142,7 @@ class UIText:
 
     def render_title_text_to(self, window: pygame.display) -> None:
         title_text = self.font_bold.render(
-            "Empyreus", self.text_colour, size=self.font_bold_size
+            "EMPYREUS", self.text_colour, size=self.font_bold_size
         )
         title_text_rect = title_text[0].get_rect(
             center=(self.window_size[0] / 2, (self.board_pos[1] / 2))
