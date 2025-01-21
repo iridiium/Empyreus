@@ -1,5 +1,6 @@
 import pygame
 import pygame.freetype
+import sys
 
 from random import choice, randrange
 
@@ -9,9 +10,6 @@ from .game.board import Board
 from .game.helper import gen_rand_light_colour
 from .game.player import Player, PlayerList
 from .game.sprite_sheet import SpriteSheet
-
-from .ui.actions import UIActions
-from .ui.text import UIText
 
 from .scene_manager import SceneManager
 
@@ -82,38 +80,18 @@ class Main:
         self.players.add("Bartholomew", gen_rand_light_colour())
         self.players.add("Cuthbert", gen_rand_light_colour())
 
-        self.ui_actions = UIActions(
-            board=self.board,
-            players=self.players,
-            dims=(4, 1),
-            font=self.font,
-            font_size=self.font_size,
-            elem_base_size=(self.board.get_size()[0] / 4, 40),
-            elem_border_size=(8, 8),
-            text_colour=self.colours["dark_purple"],
-            background_colour=self.colours["white"],
-        )
-        self.ui_text = UIText(
-            board=self.board,
-            players=self.players,
-            font=self.font,
-            font_bold=self.font_bold,
-            font_size=self.font_size,
-            font_bold_size=self.font_size * 2,
-            text_colour=self.text_colour,
-        )
-
         self.scene_manager = SceneManager(
             window=self.window,
             window_size=self.window_size,
             background=self.background,
             board=self.board,
             players=self.players,
+            font_size=self.font_size,
+            font_bold_size=self.font_bold_size,
             font=self.font,
             font_bold=self.font_bold,
+            colours=self.colours,
             text_colour=self.text_colour,
-            ui_actions=self.ui_actions,
-            ui_text=self.ui_text,
         )
 
         self.running = True
@@ -124,5 +102,4 @@ class Main:
         while self.running:
             self.scene_manager.manage_scenes()
 
-            pygame.display.flip()
             self.clock.tick(100)

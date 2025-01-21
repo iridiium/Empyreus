@@ -3,14 +3,13 @@ import pygame
 from ..game.board import Board
 from ..game.player import Player, PlayerList
 
-from ..scene_manager import SceneManager
 
-
-class UIActions(SceneManager):
+class UIActions:
     def __init__(
         self,
         board: Board,
         players: PlayerList,
+        action_names: list[str],
         dims: tuple[int, int],
         font: pygame.freetype.Font,
         font_size: int,
@@ -19,10 +18,10 @@ class UIActions(SceneManager):
         text_colour: tuple[int, int, int],
         background_colour: tuple[int, int, int],
     ):
-        super(SceneManager, self).__init__()
 
         self.board = board
         self.players = players
+        self.action_names = action_names
         self.dims = dims
         self.font = font
         self.font_size = font_size
@@ -45,21 +44,6 @@ class UIActions(SceneManager):
             self.pos[1] + self.dims[1] * self.elem_size[1],
         )
 
-        self.actions = [
-            [
-                {
-                    "name": "Help",
-                    "func": lambda: self.set_scene("help"),
-                },
-                {
-                    "name": "Trade",
-                    "func": lambda: self.players.get_curr().trade(),
-                },
-                {"name": "End", "func": lambda: self.players.cycle_curr()},
-                {"name": "End", "func": lambda: self.players.cycle_curr()},
-            ],
-        ]
-
     def check_for_action(self, mouse_pos):
         if not (
             self.pos[0] < mouse_pos[0] < self.pos_end[0]
@@ -71,9 +55,6 @@ class UIActions(SceneManager):
             int((mouse_pos[0] - self.pos[0]) // self.elem_size[0]),
             int((mouse_pos[1] - self.pos[1]) // self.elem_size[1]),
         )
-
-    def handle_action(self, action_idx):
-        return self.actions[action_idx[1]][action_idx[0]]["func"]()
 
     def render_to(self, window: pygame.display):
         for y in range(self.dims[1]):
@@ -90,7 +71,7 @@ class UIActions(SceneManager):
                 )
 
                 action_text = self.font.render(
-                    self.actions[y][x]["name"],
+                    self.action_names[y][x],
                     self.text_colour,
                     size=self.font_size,
                 )
