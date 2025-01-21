@@ -70,7 +70,7 @@ class TraderTile(Tile):
         )
 
         self.can_trade: bool = True
-        self.trade: tuple[str, int] = (tile["trade_type"], 4)
+        self.trade: tuple[str, int] = (tile["trade_type"], 5)
 
     def get_trade(self) -> tuple[str, int]:
         return self.trade

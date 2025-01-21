@@ -139,28 +139,31 @@ class SceneManager:
             self.text_colour,
         )
 
-        help_text = """
-        Click anywhere to return to the game.
-        Press ESC to exit the game at any point.
+        help_text = [
+            "",
+            "Click anywhere to return to the game.",
+            "Press ESC to exit the game at any point.",
+            "",
+            "There are 5 resources to collect.",
+            "Resources can be viewed by hovering over the bottom-left corner.",
+            "You gain resources by moving onto planets.",
+            "Planets have an icon in their top-left corner denoting the resource they yield.",
+            "",
+            "You, by default, have two actions per turn.",
+            "- Moving from one tile to another connected tile (i.e. with a white line) is one action.",
+            "- Trading at a trading ship costs one action.",
+            "- - At a trading ship, you can exchange 5 of one resource for 3 random resources.",
+            "- - The resource taken by a trading ship is denoted by the icon in its top-left corner.",
+        ]
 
-        There are 5 resources to collect.
-        The available resources to collect, and your own resources, can be viewed by hovering over the bottom-left corner.
-        You gain resources by moving onto planets.
-        Planets have an icon in their top-left corner denoting the resource they yield.
-
-        You, by default, have two actions per turn.
-        - Moving from one tile to another connected tile (i.e. with a white line) is one action.
-        - Trading at a trading ship costs one action.
-        - - At a trading ship, you can exchange 5 of one resource for 3 random resources.
-        - - The resource taken by a trading ship is denoted by the icon in its top-left corner.
-        """
-
-        for help_text_line_idx, help_text_line in enumerate(
-            help_text.split("\n")
-        ):
+        for help_text_line_idx, help_text_line in enumerate(help_text):
             self.font.render_to(
                 self.window,
-                (help_text_pos[0] + help_text_line_idx * 1.45 * self.font_size),
+                (
+                    help_text_pos[0],
+                    help_text_pos[1]
+                    + help_text_line_idx * 1.45 * self.font_size,
+                ),
                 help_text_line,
                 self.text_colour,
             )

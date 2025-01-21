@@ -103,10 +103,14 @@ class Player:
 
         trade = self.board.get_matrix()[self.pos[1]][self.pos[0]].get_trade()
 
+        print(self.resources[trade[0]], trade[1])
         if self.resources[trade[0]] >= trade[1]:
             self.resources[trade[0]] -= trade[1]
 
-            self.resources[random.choice(list(self.resources.keys()))] += 1
+            for _ in range(3):
+                self.resources[random.choice(list(self.resources.keys()))] += 1
+
+        self.actions_left = 0
 
     def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)
