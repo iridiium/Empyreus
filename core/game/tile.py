@@ -70,7 +70,11 @@ class TraderTile(Tile):
         )
 
         self.can_trade: bool = True
-        self.trade: tuple[str, int] = (tile["trade_type"], 5)
+        self.trade: tuple[str, int] = {
+            "type_taken": tile["trade_type"],
+            "amount_taken": 5,
+            "amount_given": 4,
+        }  # there is no "type_given" as all traders return random resources.
 
     def get_trade(self) -> tuple[str, int]:
         return self.trade

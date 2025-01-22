@@ -40,6 +40,7 @@ class Player:
 
         self.actions_per_turn = 2
         self.actions_left = 2
+        self.status = ""
 
         self.next = None
 
@@ -60,6 +61,9 @@ class Player:
 
     def get_pos(self) -> tuple[int, int]:
         return self.pos
+
+    def get_status(self) -> str:
+        return self.status
 
     def get_resources(self) -> dict:
         return self.resources
@@ -103,14 +107,19 @@ class Player:
 
         trade = self.board.get_matrix()[self.pos[1]][self.pos[0]].get_trade()
 
-        print(self.resources[trade[0]], trade[1])
-        if self.resources[trade[0]] >= trade[1]:
-            self.resources[trade[0]] -= trade[1]
+        if self.resources[trade["type_taken"]] >= trade["amount_taken"]:
+            self.resources[trade["type_taken"]] -= trade["amount_taken"]
 
-            for _ in range(3):
+            for _ in range(trade["amount_given"]):
                 self.resources[random.choice(list(self.resources.keys()))] += 1
 
+            self.status = f"Trade of {trade["amount_taken"]} {trade["type_taken"]} successful."
+        else:
+            self.status = f"Not enough {trade["type_taken"]} for trade (needs {trade["amount_taken"]})"
+
         self.actions_left = 0
+
+        return True
 
     def render_to(self, window: pygame.display) -> None:
         window.blit(self.image, self.rect)
@@ -124,7 +133,6 @@ class PlayerList:
         self.board = board
         self.resources = {
             resource_name: {
-                "amount": 0,
                 "icon_image": resources.get_sprite_from_name(resource_name),
             }
             for resource_name in resources.names
@@ -137,8 +145,13 @@ class PlayerList:
         self.len_cycle = 0  # The length of one cycle (as list is infinite).
         self.turns_taken = 0  # Number of turns taken.
 
+        self.status = ""
+
     def get_curr(self) -> None | Player:
         return self.curr
+
+    def get_status(self) -> str:
+        return self.curr.get_status()
 
     def get_turns_taken(self) -> int:
         return self.turns_taken

@@ -44,7 +44,7 @@ class SceneManager:
                     "name": "Trade",
                     "func": lambda: self.players.get_curr().trade(),
                 },
-                {"name": "Buy", "func": lambda: self.players.cycle_curr()},
+                {"name": "Buy", "func": lambda: self.players.buy()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],
         ]

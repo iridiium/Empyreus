@@ -146,7 +146,10 @@ class Board:
     def get_size(self) -> tuple[int, int]:
         return (self.pos_end[0] - self.pos[0], self.pos_end[1] - self.pos[1])
 
-    def get_icon_sprite_from_type(self, type) -> None | pygame.Surface:
+    def get_icon_sprite_from_resource_type(self, type) -> None | pygame.Surface:
+        return self.icon_sprite_sheet.get_sprite_from_name(resource_type)
+
+    def get_icon_sprite_from_tile_type(self, type) -> None | pygame.Surface:
         resource_type = self.get_resource_type_from_tile_type(type)
 
         if resource_type:
@@ -270,13 +273,6 @@ class Board:
     def order_tiles(self, tiles: dict[str, int]) -> Iterator[dict]:
         tile_order: list[dict] = []
 
-        trader_types: Iterator[str] = iter(
-            sample(
-                sorted(self.icon_sprite_sheet.get_names().keys()),
-                self.num_traders,
-            )
-        )
-
         total = 0
 
         for tile_type, tile_amount in tiles.items():
@@ -286,14 +282,18 @@ class Board:
                 total += tile_amount
 
             for _ in range(tile_amount):
+                resource_type = self.get_resource_type_from_tile_type(tile_type)
+
                 tile_attrs = {
                     "sprite": self.sprite_sheet.get_sprite_from_name(tile_type),
                     "type": tile_type,
-                    "icon_sprite": self.get_icon_sprite_from_type(tile_type),
+                    "icon_sprite": self.get_icon_sprite_from_tile_type(
+                        tile_type
+                    ),
                 }
 
                 if tile_type.startswith("trader"):
-                    tile_attrs["trade_type"] = next(trader_types)
+                    tile_attrs["trade_type"] = resource_type
 
                 tile_order.insert(
                     randint(0, len(tile_order)),

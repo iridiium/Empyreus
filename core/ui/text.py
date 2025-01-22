@@ -41,6 +41,7 @@ class UIText:
         self.render_player_list_text_to(window)
         self.render_player_resource_text_to(window, mouse_pos)
         self.render_player_turn_text_to(window)
+        self.render_status_text_to(window)
         self.render_title_text_to(window)
 
     def render_player_list_text_to(self, window: pygame.display) -> None:
@@ -151,6 +152,14 @@ class UIText:
                 + 2 * (self.tile_border_size[1] + self.font_size),
             ),
             f"Actions left: {self.curr_player.get_actions_left()}",
+            self.text_colour,
+        )
+
+    def render_status_text_to(self, window: pygame.display) -> None:
+        self.font.render_to(
+            window,
+            (20, 50),
+            self.players.get_status(),
             self.text_colour,
         )
 
