@@ -7,8 +7,8 @@ from random import choice, randrange
 from .asset_loader import load_assets
 from .game.background import Background
 from .game.board import Board
-from .game.helper import gen_rand_light_colour
 from .game.player import Player, PlayerList
+from .game.shop import Shop
 from .game.sprite_sheet import SpriteSheet
 
 from .scene_manager import SceneManager
@@ -76,9 +76,6 @@ class Main:
             self.sprite_sheet_resources,
             "./assets/images/tiny-spaceships",
         )
-        self.players.add("Aloysius", gen_rand_light_colour())
-        self.players.add("Bartholomew", gen_rand_light_colour())
-        self.players.add("Cuthbert", gen_rand_light_colour())
 
         self.scene_manager = SceneManager(
             window=self.window,

@@ -3,7 +3,7 @@ import pygame
 from collections import deque
 from copy import deepcopy
 from math import sqrt
-from random import randrange
+from random import randint, random, randrange
 
 
 # Graph-related
@@ -98,9 +98,5 @@ def merge(left, right, key):
 
 
 # Other
-def gen_rand_dark_colour():
-    return tuple(randrange(0, 160) for _ in range(3))
-
-
-def gen_rand_light_colour():
-    return tuple(randrange(95, 255) for _ in range(3))
+def gen_colour():
+    return tuple(randint(0, 255) for _ in range(3))

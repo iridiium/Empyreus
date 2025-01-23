@@ -1,6 +1,8 @@
 import pygame
+import random
 import sys
 
+from .game.helper import gen_colour
 
 from .ui.actions import UIActions
 from .ui.text import UIText
@@ -44,7 +46,7 @@ class SceneManager:
                     "name": "Trade",
                     "func": lambda: self.players.get_curr().trade(),
                 },
-                {"name": "Buy", "func": lambda: self.players.buy()},
+                {"name": "Shop", "func": lambda: self.players.open_shop()},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],
         ]
@@ -76,6 +78,33 @@ class SceneManager:
 
         self.running = True
         self.scene = "title"
+
+        self.names = [
+            "Aloysius",
+            "Bartholomew",
+            "Cuthbert",
+            "Desmond",
+            "Ezekiel",
+            "Florian",
+            "Godfrey",
+            "Horatio",
+            "Ignatius",
+            "Jeremias",
+            "Kensington",
+            "Lysander",
+            "Margaret",
+            "Nathaniel",
+            "Octavius",
+            "Peregrine",
+            "Reginald",
+            "Sebastian",
+            "Thaddeus",
+            "Umbro",
+            "Vanderbilt",
+            "Xander",
+            "Yorick",
+            "Zephyr",
+        ]
 
     def set_scene(self, new_scene):
         self.scene = new_scene
@@ -190,7 +219,7 @@ class SceneManager:
         self.window.blit(title[0], title_rect)
 
         instruction = self.font.render(
-            "Click anywhere to start.",
+            "Enter the number of players (2 to 5) to start a new game.",
             self.text_colour,
         )
         instruction_rect = title[0].get_rect(
@@ -203,7 +232,15 @@ class SceneManager:
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.scene = "game"
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
+                elif pygame.K_2 <= event.key <= pygame.K_5:
+                    self.selected_names = random.sample(
+                        self.names, event.key - 48
+                    )
+
+                    for selected_name in self.selected_names:
+                        self.players.add(selected_name, gen_colour())
+
+                    self.scene = "game"
