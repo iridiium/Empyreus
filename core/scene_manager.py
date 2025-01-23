@@ -46,10 +46,11 @@ class SceneManager:
                     "name": "Trade",
                     "func": lambda: self.players.get_curr().trade(),
                 },
-                {"name": "Shop", "func": lambda: self.players.open_shop()},
+                {"name": "Shop", "func": lambda: self.set_scene("shop")},
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],
         ]
+        self.shop = [{}]
 
         self.ui_actions = UIActions(
             board=self.board,
@@ -116,6 +117,8 @@ class SceneManager:
             self.game_scene()
         elif self.scene == "help":
             self.help_scene()
+        elif self.scene == "shop":
+            self.shop_scene()
         elif self.scene == "title":
             self.title_scene()
 
@@ -206,6 +209,11 @@ class SceneManager:
                 self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.scene = "game"
+
+    def shop_scene(self):
+        game_scene()
+        # self.shop.render_to(window)
+        # self.render_player_resource_text_to(window, mouse_pos)
 
     def title_scene(self):
         title = self.font_bold.render(
