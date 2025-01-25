@@ -10,7 +10,6 @@ class UIActions:
         board: Board,
         players: PlayerList,
         action_names: list[str],
-        dims: tuple[int, int],
         font: pygame.freetype.Font,
         font_size: int,
         elem_base_size: tuple[int, int],
@@ -22,7 +21,6 @@ class UIActions:
         self.board = board
         self.players = players
         self.action_names = action_names
-        self.dims = dims
         self.font = font
         self.font_size = font_size
         self.elem_base_size = elem_base_size
@@ -30,13 +28,14 @@ class UIActions:
         self.text_colour = text_colour
         self.background_colour = background_colour
 
+        self.board_pos = self.board.get_pos()
+        self.board_pos_end = self.board.get_pos_end()
+
+        self.dims = (len(action_names[0]), len(action_names))
         self.elem_size = (
             self.elem_base_size[0] + self.elem_border_size[0],
             self.elem_base_size[1] + self.elem_border_size[1],
         )
-
-        self.board_pos = self.board.get_pos()
-        self.board_pos_end = self.board.get_pos_end()
 
         self.pos = (self.board_pos[0], self.board_pos_end[1] + 20)
         self.pos_end = (

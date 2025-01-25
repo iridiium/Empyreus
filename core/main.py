@@ -8,7 +8,7 @@ from .asset_loader import load_assets
 from .game.background import Background
 from .game.board import Board
 from .game.player import Player, PlayerList
-from .game.shop import Shop
+from .game.shop import Shop, Product
 from .game.sprite_sheet import SpriteSheet
 
 from .scene_manager import SceneManager
@@ -18,8 +18,9 @@ class Main:
     def __init__(self):
         (
             self.background,
-            self.sprite_sheet_tiles,
+            self.sprite_sheet_products,
             self.sprite_sheet_resources,
+            self.sprite_sheet_tiles,
             self.font_size,
             self.font_bold_size,
             self.font,
@@ -76,6 +77,28 @@ class Main:
             self.sprite_sheet_resources,
             "./assets/images/tiny-spaceships",
         )
+        self.shop = Shop(
+            [
+                Product(
+                    name="Engine Upgrade 1",
+                    icon_image=self.sprite_sheet_products.get_sprite_from_name(
+                        "excavator"
+                    ),
+                    cost={"helium": 2, "ore": 2, "ice": 1},
+                    effect=lambda: self.players.get_curr().change_actions(1),
+                    effect_desc="+1 action for all your next turns.",
+                ),
+                Product(
+                    name="Engine Upgrade 2",
+                    icon_image=self.sprite_sheet_products.get_sprite_from_name(
+                        "bucket"
+                    ),
+                    cost={"helium": 3, "ore": 3, "uranium": 2},
+                    effect=lambda: self.players.get_curr().change_actions(2),
+                    effect_desc="+2 actions for all your next turns.",
+                ),
+            ]
+        )
 
         self.scene_manager = SceneManager(
             window=self.window,
@@ -83,6 +106,7 @@ class Main:
             background=self.background,
             board=self.board,
             players=self.players,
+            shop=self.shop,
             font_size=self.font_size,
             font_bold_size=self.font_bold_size,
             font=self.font,

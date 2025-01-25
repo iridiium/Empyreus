@@ -16,6 +16,7 @@ class SceneManager:
         background,
         board,
         players,
+        shop,
         font_size,
         font_bold_size,
         font,
@@ -28,6 +29,7 @@ class SceneManager:
         self.background = background
         self.board = board
         self.players = players
+        self.shop = shop
         self.font = font
         self.font_size = font_size
         self.font_bold_size = font_bold_size
@@ -50,7 +52,6 @@ class SceneManager:
                 {"name": "End", "func": lambda: self.players.cycle_curr()},
             ],
         ]
-        self.shop = [{}]
 
         self.ui_actions = UIActions(
             board=self.board,
@@ -59,7 +60,6 @@ class SceneManager:
                 [action["name"] for action in action_row]
                 for action_row in self.actions
             ],
-            dims=(4, 1),
             font=self.font,
             font_size=self.font_size,
             elem_base_size=(self.board.get_size()[0] / 4, 40),
@@ -211,9 +211,7 @@ class SceneManager:
                 self.scene = "game"
 
     def shop_scene(self):
-        game_scene()
-        # self.shop.render_to(window)
-        # self.render_player_resource_text_to(window, mouse_pos)
+        self.shop.render_to(window)
 
     def title_scene(self):
         title = self.font_bold.render(

@@ -13,6 +13,35 @@ def load_assets():
     )
 
     # ---- Sprite Sheets ----
+    sprite_sheet_products = SpriteSheet(
+        image_file_path="./assets/images/MiningIcons.png",
+        sprite_size=(32, 32),
+        names={
+            "pickaxe": (0, 0),
+            "pickaxe_broken": (1, 0),
+            "drill_bit_cone": (2, 0),
+            "drill": (3, 0),
+            "shovel": (4, 0),
+            "jackhammer": (5, 0),
+            "drill_bit_corkscrew": (6, 0),
+            "bucket": (7, 0),
+            "excavator": (8, 0),
+            "excavator_wheel": (9, 0),
+        },
+    )
+
+    sprite_sheet_resources = SpriteSheet(
+        image_file_path="./assets/images/MiningIcons.png",
+        sprite_size=(32, 32),
+        names={
+            "carbon": (1, 1),
+            "helium": (8, 2),
+            "ice": (4, 2),
+            "ore": (5, 1),
+            "uranium": (7, 3),
+        },
+    )
+
     sprite_sheet_tiles = SpriteSheet(
         image_file_path="./assets/images/CelestialObjects_Tiles.png",
         sprite_size=(64, 64),
@@ -31,18 +60,6 @@ def load_assets():
         },
     )
 
-    sprite_sheet_resources = SpriteSheet(
-        image_file_path="./assets/images/MiningIcons.png",
-        sprite_size=(32, 32),
-        names={
-            "carbon": (1, 1),
-            "helium": (8, 2),
-            "ice": (4, 2),
-            "ore": (5, 1),
-            "uranium": (7, 3),
-        },
-    )
-
     # ---- Fonts ----
     font_size = 20
     font_bold_size = 40
@@ -57,8 +74,9 @@ def load_assets():
 
     return (
         background,
-        sprite_sheet_tiles,
+        sprite_sheet_products,
         sprite_sheet_resources,
+        sprite_sheet_tiles,
         font_size,
         font_bold_size,
         font,
