@@ -162,12 +162,12 @@ class SceneManager:
             player.render_to(self.window)
 
     def help_scene(self):
-        help_text_pos = (20, 20)
+        help_text_pos = (60, 60)
 
         self.font_bold.render_to(
             self.window,
             help_text_pos,
-            f"HELP SCREEN",
+            f"HELP:",
             self.text_colour,
         )
 
@@ -211,7 +211,86 @@ class SceneManager:
                 self.scene = "game"
 
     def shop_scene(self):
-        self.shop.render_to(window)
+        shop_text_pos = (60, 60)
+
+        self.font_bold.render_to(
+            self.window,
+            shop_text_pos,
+            "SHOP:",
+            self.text_colour,
+        )
+
+        shop_products_text_pos = (60, 120)
+        shop_products_text_spacing = 2.5 * self.font_size
+
+        for product_idx, product in enumerate(self.shop.get_products()):
+            self.font.render_to(
+                self.window,
+                (
+                    shop_products_text_pos[0],
+                    shop_products_text_pos[1]
+                    + product_idx * shop_products_text_spacing,
+                ),
+                f"{product_idx + 1}     {product.get_name()}",
+                self.text_colour,
+            )
+
+            self.window.blit(
+                pygame.transform.scale(
+                    product.get_icon_image(), (self.font_size, self.font_size)
+                ),
+                (
+                    shop_products_text_pos[0] + 10 * self.font_size,
+                    shop_products_text_pos[1]
+                    + product_idx * shop_products_text_spacing,
+                ),
+            )
+
+            self.font.render_to(
+                self.window,
+                (
+                    shop_products_text_pos[0] + 11 * self.font_size,
+                    shop_products_text_pos[1]
+                    + product_idx * shop_products_text_spacing,
+                ),
+                "    "
+                + " ".join(
+                    [
+                        f"{key}: {value}"
+                        for key, value in product.get_cost().items()
+                    ]
+                ),
+                self.text_colour,
+            )
+
+            self.font.render_to(
+                self.window,
+                (
+                    shop_products_text_pos[0] + 30 * self.font_size,
+                    shop_products_text_pos[1]
+                    + product_idx * shop_products_text_spacing,
+                ),
+                product.get_effect_desc(),
+                self.text_colour,
+            )
+
+        for event in pygame.event.get():
+            if not self.running:
+                pygame.display.quit()
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
+                elif (
+                    event.key in self.shop.get_ascii_idxs()
+                    and self.shop.check_product_reqs(
+                        self.players.get_curr(), event.key - 48
+                    )
+                ):
+                    self.shop.buy_product()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.scene = "game"
 
     def title_scene(self):
         title = self.font_bold.render(
@@ -219,19 +298,20 @@ class SceneManager:
             self.text_colour,
             size=100,
         )
-        title_rect = title[0].get_rect(
-            center=(self.window_size[0] / 2, self.window_size[1] / 2)
-        )
-        self.window.blit(title[0], title_rect)
+        title[1].center = (self.window_size[0] / 2, self.window_size[1] / 2)
+
+        self.window.blit(title[0], title[1])
 
         instruction = self.font.render(
             "Enter the number of players (2 to 5) to start a new game.",
             self.text_colour,
         )
-        instruction_rect = title[0].get_rect(
-            center=(self.window_size[0] / 2, self.window_size[1] * 0.75),
+        instruction[1].center = (
+            self.window_size[0] / 2,
+            self.window_size[1] * 0.75,
         )
-        self.window.blit(instruction[0], instruction_rect)
+
+        self.window.blit(instruction[0], instruction[1])
 
         for event in pygame.event.get():
             if not self.running:

@@ -80,22 +80,26 @@ class Main:
         self.shop = Shop(
             [
                 Product(
+                    idx="1",
                     name="Engine Upgrade 1",
                     icon_image=self.sprite_sheet_products.get_sprite_from_name(
                         "excavator"
                     ),
                     cost={"helium": 2, "ore": 2, "ice": 1},
                     effect=lambda: self.players.get_curr().change_actions(1),
-                    effect_desc="+1 action for all your next turns.",
+                    score=1,
+                    effect_desc="+1 score, +1 action per turn.",
                 ),
                 Product(
+                    idx="2",
                     name="Engine Upgrade 2",
                     icon_image=self.sprite_sheet_products.get_sprite_from_name(
                         "bucket"
                     ),
                     cost={"helium": 3, "ore": 3, "uranium": 2},
                     effect=lambda: self.players.get_curr().change_actions(2),
-                    effect_desc="+2 actions for all your next turns.",
+                    score=1,
+                    effect_desc="+1 score, +1 action per turn.",
                 ),
             ]
         )

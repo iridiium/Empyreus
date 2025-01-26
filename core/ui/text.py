@@ -52,9 +52,8 @@ class UIText:
                 + (player_num * (self.tile_border_size[1] + self.font_size)),
             )
 
-            player_image = player.get_image()
             window.blit(
-                player_image,
+                player.get_image(),
                 player_list_text_pos
                 + (
                     self.font_size,
@@ -100,20 +99,19 @@ class UIText:
             for resource_index, (resource_name, resource_amount) in enumerate(
                 curr_player_resources.items()
             ):
-                resource_icon_image = (
-                    self.board.get_icon_sprite_sheet().get_sprite_from_name(
-                        resource_name
-                    )
+                window.blit(
+                    pygame.transform.scale(
+                        self.board.get_icon_sprite_sheet().get_sprite_from_name(
+                            resource_name
+                        ),
+                        (self.font_size, self.font_size),
+                    ),
+                    (
+                        resource_text_rect.left,
+                        resource_text_rect.top
+                        + (resource_index + 0.5) * 1.5 * self.font_size,
+                    ),
                 )
-
-                resource_icon_image_rect = pygame.Rect(
-                    resource_text_rect.left,
-                    resource_text_rect.top
-                    + (resource_index + 0.5) * 1.45 * self.font_size,
-                    self.font_size,
-                    self.font_size,
-                )
-                window.blit(resource_icon_image, resource_icon_image_rect)
 
                 self.font.render_to(
                     window,
@@ -167,7 +165,6 @@ class UIText:
         title_text = self.font_bold.render(
             "EMPYREUS", self.text_colour, size=self.font_bold_size
         )
-        title_text_rect = title_text[0].get_rect(
-            center=(self.window_size[0] / 2, (self.board_pos[1] / 2))
-        )
-        window.blit(title_text[0], title_text_rect)
+        title_text[1].center = (self.window_size[0] / 2, self.board_pos[1] / 2)
+
+        window.blit(title_text[0], title_text[1])
