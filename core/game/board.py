@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .player import Player
-    from .sprite_sheet import SpriteSheet
+    from ..ui.sprite_sheet import SpriteSheet
 
 import pygame
 
@@ -45,15 +45,6 @@ class Board:
         self.window_size = window_size
         self.sprite_sheet = sprite_sheet
         self.icon_sprite_sheet = icon_sprite_sheet
-
-        self.num_planets = sum(
-            list(filter(lambda amount: amount > 0, tiles.values()))
-        )
-        self.num_traders = sum(
-            amount
-            for type, amount in tiles.items()
-            if type.startswith("trader")
-        )
 
         self.tile_order = self.order_tiles(tiles)
         self.tile_size: tuple[int, int] = (
@@ -328,15 +319,13 @@ class Board:
                 tile_rect = tile.get_rect_in_board()
 
                 if (i, j) == mouse_board_coord:
-                    mouse_board_highlight_rect = tile_rect.scale_by(1)
                     pygame.draw.rect(
-                        window, tile.get_colour(), mouse_board_highlight_rect
+                        window, tile.get_colour(), tile_rect.scale_by(1)
                     )
 
                 if (i, j) == player.get_pos():
-                    player_highlight_rect = tile_rect.scale_by(1)
                     pygame.draw.rect(
-                        window, player.get_colour(), player_highlight_rect
+                        window, player.get_colour(), tile_rect.scale_by(1)
                     )
 
                 window.blit(tile.get_image(), tile_rect)

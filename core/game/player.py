@@ -11,7 +11,8 @@ import pygame
 import random
 
 from .helper import get_conns
-from .sprite_sheet import SpriteSheet
+
+from ..ui.sprite_sheet import SpriteSheet
 
 
 class Player:

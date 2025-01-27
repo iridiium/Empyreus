@@ -4,12 +4,13 @@ import sys
 
 from random import choice, randrange
 
-from .asset_loader import load_assets
-from .game.background import Background
 from .game.board import Board
 from .game.player import Player, PlayerList
 from .game.shop import Shop, Product
-from .game.sprite_sheet import SpriteSheet
+
+from .ui.asset_loader import load_assets
+from .ui.background import Background
+from .ui.sprite_sheet import SpriteSheet
 
 from .scene_manager import SceneManager
 

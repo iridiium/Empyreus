@@ -22,16 +22,19 @@ class Shop:
     def get_idxs_ascii(self):
         return self.idxs_ascii
 
-    def buy_product(self, player: Player, product_idx: int):
+    def buy_product(self, player: Player, product_idx: int) -> None:
         product = self.products[product_idx - 1]
 
+        # Runs the effect command, stored as an function attribute.
         product.get_effect()()
-        self.player.change_player_score_by(product.get_score())
 
+        player.change_score_by(product.get_score())
+
+        # Removes all specified resources for the product.
         player_resources = player.get_resources()
-        for resource, resource_amount in self.cost.items():
+        for resource, resource_amount in product.get_cost().items():
             player_resources[resource] -= resource_amount
-        self.player.set_resources(player_resources)
+        player.set_resources(player_resources)
 
     def check_product_reqs(self, player: Player, product_idx: int) -> bool:
         return self.products[product_idx - 1].check_reqs(player)
@@ -39,8 +42,7 @@ class Shop:
 
 class Product:
 
-    def __init__(self, idx, name, icon_image, cost, effect, score,
-                 effect_desc):
+    def __init__(self, idx, name, icon_image, cost, effect, score, effect_desc):
         self.idx = idx
         self.name = name
         self.icon_image = icon_image

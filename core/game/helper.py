@@ -70,7 +70,7 @@ def find_dist(coord1, coord2):
 
 
 # Sorting
-def merge_sort(arr, key):
+def merge_sort(arr, key=lambda a, b: a < b):
     if len(arr) <= 1:
         return arr
 

@@ -1,0 +1,19 @@
+
+Click anywhere at any point to return to the game.
+Press ESC to exit the game at any point.
+
+Instructions:
+- There are 5 resources to collect.
+- - Each planet has 1 resource that can be collected from it.
+- - - That resource's icon is in the planet's top-left corner.
+- - The player's resources can be viewed by hovering over the bottom-left corner of the window.
+
+Turn details:
+- Moving between tiles: one action.
+- - You can only move between tiles connected with a white line.
+- - When you move onto a planet, you get 1 of its associated resource.
+- Trading at a trading station: all actions left. 
+- - At a trading ship you can exchange 5 of one resource for 3 random resources.
+- - The resource taken by a trading ship is denoted by the icon in its top-left corner.
+
+Obtain 5 points from buying products to win!

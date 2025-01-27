@@ -1,7 +1,7 @@
 import pygame
 
-from .game.background import Background
-from .game.sprite_sheet import SpriteSheet
+from .background import Background
+from .sprite_sheet import SpriteSheet
 
 
 def load_assets():
