@@ -79,6 +79,8 @@ class SceneManager:
 
         self.running = True
         self.scene = "title"
+        self.status = ""
+        self.status_desc = ""
 
         self.names = [
             "Aloysius",
@@ -173,7 +175,7 @@ class SceneManager:
 
         help_text = [
             "",
-            "Click anywhere to return to the game.",
+            "Click anywhere, at any point, to return to the game.",
             "Press ESC to exit the game at any point.",
             "",
             "There are 5 resources to collect.",
@@ -274,6 +276,15 @@ class SceneManager:
                 self.text_colour,
             )
 
+        self.font.render_to(
+            self.window,
+            (shop_text_pos[0], self.window_size[1] - shop_text_pos[1]),
+            self.status_desc if self.status else "",
+            self.text_colour,
+        )
+
+        curr_player = self.players.get_curr()
+
         for event in pygame.event.get():
             if not self.running:
                 pygame.display.quit()
@@ -282,13 +293,20 @@ class SceneManager:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                elif (
-                    event.key in self.shop.get_ascii_idxs()
-                    and self.shop.check_product_reqs(
-                        self.players.get_curr(), event.key - 48
-                    )
-                ):
-                    self.shop.buy_product()
+                elif event.key in self.shop.get_idxs_ascii():
+                    if self.shop.check_product_reqs(
+                        curr_player, product_idx := event.key - 48
+                    ):
+                        self.shop.buy_product(product_idx)
+                        self.status = "purchase_success"
+                        self.status_desc = (
+                            f"Product {product_idx} purchased successfully."
+                        )
+                    else:
+                        self.status = "purchase_failure_insufficient_resources"
+                        self.status_desc = (
+                            f"Insufficient resources for product {product_idx}."
+                        )
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.scene = "game"
 

@@ -86,7 +86,9 @@ class Main:
                         "excavator"
                     ),
                     cost={"helium": 2, "ore": 2, "ice": 1},
-                    effect=lambda: self.players.get_curr().change_actions(1),
+                    effect=lambda: self.players.get_curr().change_actions_per_turn_by(
+                        1
+                    ),
                     score=1,
                     effect_desc="+1 score, +1 action per turn.",
                 ),
@@ -97,7 +99,9 @@ class Main:
                         "bucket"
                     ),
                     cost={"helium": 3, "ore": 3, "uranium": 2},
-                    effect=lambda: self.players.get_curr().change_actions(2),
+                    effect=lambda: self.players.get_curr().change_actions_per_turn_by(
+                        2
+                    ),
                     score=1,
                     effect_desc="+1 score, +1 action per turn.",
                 ),

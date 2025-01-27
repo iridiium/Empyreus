@@ -38,11 +38,15 @@ class Player:
         self.rect = self.image.get_rect()
         self.rect.center = self.board.get_tile_centre_pos(self.pos)
 
+        self.score = 0
         self.actions_per_turn = 2
         self.actions_left = 2
         self.status = ""
 
         self.next = None
+
+    def change_actions_per_turn_by(self, change_actions_per_turn):
+        self.actions_per_turn += change_actions_per_turn
 
     def get_actions_left(self) -> int:
         return self.actions_left
@@ -64,6 +68,9 @@ class Player:
 
     def get_status(self) -> str:
         return self.status
+
+    def set_status(self, new_status) -> None:
+        self.status = new_status
 
     def get_resources(self) -> dict:
         return self.resources
@@ -144,8 +151,6 @@ class PlayerList:
 
         self.len_cycle = 0  # The length of one cycle (as list is infinite).
         self.turns_taken = 0  # Number of turns taken.
-
-        self.status = ""
 
     def get_curr(self) -> None | Player:
         return self.curr

@@ -21,6 +21,9 @@ class Shop:
     def get_idxs_ascii(self):
         return self.idxs_ascii
 
+    def buy_product(self, product_idx: int):
+        self.products[product_idx - 1].get_effect()()
+
     def check_product_reqs(self, player: Player, product_idx: int) -> bool:
         return self.products[product_idx - 1].check_reqs(player)
 
@@ -59,7 +62,7 @@ class Product:
     def check_reqs(self, player: Player) -> bool:
         player_resources = player.get_resources()
 
-        for resource, resource_amount in self.cost:
+        for resource, resource_amount in self.cost.items():
             if player_resources[resource] < resource_amount:
                 return False
 
