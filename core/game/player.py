@@ -45,8 +45,8 @@ class Player:
 
         self.next = None
 
-    def change_actions_per_turn_by(self, change_actions_per_turn):
-        self.actions_per_turn += change_actions_per_turn
+    def change_actions_per_turn_by(self, actions_per_turn_change):
+        self.actions_per_turn += actions_per_turn_change
 
     def get_actions_left(self) -> int:
         return self.actions_left
@@ -66,6 +66,12 @@ class Player:
     def get_pos(self) -> tuple[int, int]:
         return self.pos
 
+    def get_score(self):
+        return self.score
+
+    def change_score_by(self, score_change):
+        self.score += score_change
+
     def get_status(self) -> str:
         return self.status
 
@@ -74,6 +80,9 @@ class Player:
 
     def get_resources(self) -> dict:
         return self.resources
+
+    def set_resources(self, new_resources) -> dict:
+        self.resources = new_resources
 
     def get_ship_image_file_location(self) -> str:
         return random.choice(os.listdir("./assets/images/tiny-spaceships"))

@@ -103,7 +103,7 @@ class Main:
                         2
                     ),
                     score=1,
-                    effect_desc="+1 score, +1 action per turn.",
+                    effect_desc="+2 score, +2 actions per turn.",
                 ),
             ]
         )

@@ -6,6 +6,7 @@ from .player import Player
 
 
 class Shop:
+
     def __init__(self, products: list[Product]):
         self.products = products
 
@@ -21,15 +22,25 @@ class Shop:
     def get_idxs_ascii(self):
         return self.idxs_ascii
 
-    def buy_product(self, product_idx: int):
-        self.products[product_idx - 1].get_effect()()
+    def buy_product(self, player: Player, product_idx: int):
+        product = self.products[product_idx - 1]
+
+        product.get_effect()()
+        self.player.change_player_score_by(product.get_score())
+
+        player_resources = player.get_resources()
+        for resource, resource_amount in self.cost.items():
+            player_resources[resource] -= resource_amount
+        self.player.set_resources(player_resources)
 
     def check_product_reqs(self, player: Player, product_idx: int) -> bool:
         return self.products[product_idx - 1].check_reqs(player)
 
 
 class Product:
-    def __init__(self, idx, name, icon_image, cost, effect, score, effect_desc):
+
+    def __init__(self, idx, name, icon_image, cost, effect, score,
+                 effect_desc):
         self.idx = idx
         self.name = name
         self.icon_image = icon_image

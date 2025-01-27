@@ -99,6 +99,7 @@ class SceneManager:
             "Nathaniel",
             "Octavius",
             "Peregrine",
+            "Quentin",
             "Reginald",
             "Sebastian",
             "Thaddeus",
