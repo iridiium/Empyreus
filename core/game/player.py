@@ -120,9 +120,9 @@ class Player:
             for _ in range(trade["amount_given"]):
                 self.resources[random.choice(list(self.resources.keys()))] += 1
 
-            self.status = f"Trade of {trade["amount_taken"]} {trade["type_taken"]} successful."
+            self.status = f'Trade of {trade["amount_taken"]} {trade["type_taken"]} successful.'
         else:
-            self.status = f"Not enough {trade["type_taken"]} for trade (needs {trade["amount_taken"]})"
+            self.status = f'Not enough {trade["type_taken"]} for trade (needs {trade["amount_taken"]})'
 
         self.actions_left = 0
 
