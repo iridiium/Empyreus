@@ -117,7 +117,7 @@ class SceneManager:
     def set_scene(self, new_scene):
         self.scene_name = new_scene
 
-    def manage_scenes(self):
+    def handle_actions(self):
         self.window.blit(self.background.image, self.background.rect)
 
         {

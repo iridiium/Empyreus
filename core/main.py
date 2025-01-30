@@ -130,6 +130,6 @@ class Main:
         pygame.init()
 
         while self.running:
-            self.scene_manager.manage_scenes()
+            self.scene_manager.handle_actions()
 
             self.clock.tick(100)
