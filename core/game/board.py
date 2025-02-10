@@ -204,13 +204,19 @@ class Board:
             last_node = (last_j, last_i)
             node = (j, i)
 
+            # Tells the depth-first search to not check this node again.
             visited[i][j] = True
+
+            # Adds an undirected edge to the graph, given a defined node.
             if last_node != (-1, -1):
                 graph[last_node].add(node)
                 graph[node].add(last_node)
 
+            # Adds the node to the current island (connected nodes).
             island.append(node)
 
+            # Calls the depth-first search on all unvisited neighbours.
+            # These include both adjacent and diagonal nodes.
             for m in range(i - 1, i + 2):
                 for n in range(j - 1, j + 2):
                     if (
@@ -220,6 +226,9 @@ class Board:
                     ):
                         dfs(m, n, i, j, island)
 
+        # Stores all the islands.
+        # If every node is adjacent/diagonal to each other, there will only be one island.
+        # If there are groups of nodes not adjacent to any other groups of nodes, there will be multiple islands.
         islands: list[list[tuple[int, int]]] = []
         for i in range(self.dims[1]):
             for j in range(self.dims[0]):
@@ -228,7 +237,7 @@ class Board:
                     dfs(i, j, -1, -1, island)
                     islands.append(island)
 
-        # Creates a connected tree.
+        # Creates a one island - a connected graph.
         # Links the mainland to all the isles.
         # - mainland: the largest connected group of planets.
         # - isles: any smaller connected groups not adjacent to the mainland.
@@ -277,6 +286,7 @@ class Board:
             for _ in range(tile_amount):
                 resource_type = self.get_resource_type_from_tile_type(tile_type)
 
+                # The dictionary of attributes used to create each tile object in __init__().
                 tile_attrs = {
                     "sprite": self.sprite_sheet.get_sprite_from_name(tile_type),
                     "type": tile_type,
