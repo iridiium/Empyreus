@@ -184,7 +184,18 @@ class PlayerList:
             self.curr.reset_actions_left()
         return self.curr
 
+    def clear(self) -> None:
+        # Removes all Player objects from inside this PlayerList object.
+        # Resets all related stats.
+        self.curr = None
+        self.first = None
+
+        self.len_cycle = 0
+        self.turns_taken = 0
+
     def add(self, name: str, colour: tuple[int, int, int]) -> None:
+        # Creates a new Player object inside this PlayerList object,
+        # and adds it to the circular linked list order.
         new = Player(
             name,
             self.len_cycle,

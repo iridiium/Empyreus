@@ -155,7 +155,7 @@ class SceneManager:
 
     def end_scene(self) -> None:
         title_text = self.font_bold.render(
-            f"P{self.winner_num} ({self.winner_name}) WINS",
+            f"P{self.winner_num + 1} ({self.winner_name}) WINS",
             self.text_colour,
             size=50,
         )
@@ -186,6 +186,8 @@ class SceneManager:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
                 elif pygame.K_1 <= event.key <= pygame.K_5:
+                    self.players.clear()
+
                     self.selected_names = random.sample(
                         self.names, event.key - 48
                     )
@@ -228,7 +230,7 @@ class SceneManager:
                         mouse_board_coord, curr_player_pos
                     )
 
-                    if actions_left == 0:
+                    if actions_left <= 0:
                         self.players.cycle_curr()
                 elif action_idx := self.ui_actions.check_for_action(mouse_pos):
                     self.actions[action_idx[1]][action_idx[0]]["func"]()
