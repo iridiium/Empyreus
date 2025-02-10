@@ -15,15 +15,15 @@ def get_conns(graph, node, dist=1):
     if node in graph:
         adjs.extend(graph[node])
 
-    if dist > 1:
+    if dist > 1:  # Recursive base case
         for adj in adjs:
-            adjs.extend(get_conns(adj, dist - 1))
+            adjs.extend(get_conns(adj, dist - 1))  # Recursive function call
 
     return adjs
 
 
 def get_min_conns_dist(graph, start, end):
-    """Gets the smallest number of nodes on a path from start to end."""
+    """Gets the distance on the shortest path of nodes between the two given nodes."""
     if start == end:
         return 0
 
@@ -87,6 +87,10 @@ def merge(left, right, key):
     i, j = 0, 0
 
     while i < len(left) and j < len(right):
+        # The specified key function is used to compare the two,
+        # which is the regular less than function by default
+        # (to sort a list of numbers in ascending order).
+        # This means this function can be used for
         if key(left[i], right[j]):
             result.append(left[i])
             i += 1

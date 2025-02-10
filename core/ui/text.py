@@ -46,12 +46,14 @@ class UIText:
 
     def render_player_list_text_to(self, window: pygame.display) -> None:
         for player_num, player in enumerate(self.players.get_list()):
+            # Renders the individual player's line of text.
             player_list_text_pos = (
                 self.board.get_pos_end()[0] + 0.3 * self.tile_size[0],
                 self.board_pos[1]
                 + (player_num * (self.tile_border_size[1] + self.font_size)),
             )
 
+            # Renders player image.
             window.blit(
                 pygame.transform.scale(
                     player.get_image(),
@@ -63,6 +65,7 @@ class UIText:
                 player_list_text_pos,
             )
 
+            # Renders player index, name and score.
             self.font.render_to(
                 window,
                 (
@@ -80,6 +83,7 @@ class UIText:
     ) -> None:
         curr_player_resources = self.curr_player.get_resources()
 
+        # Renders a hitbox rectangle for detecting hovering.
         resource_text_rect = pygame.Rect(
             20,
             0.75 * self.board_pos_end[1],
@@ -87,6 +91,7 @@ class UIText:
             (len(curr_player_resources) + 0.5) * 7 * self.font_size,
         )
 
+        # Renders title text.
         self.font.render_to(
             window,
             (
@@ -97,10 +102,12 @@ class UIText:
             self.text_colour,
         )
 
+        # Handles the hiding/showing of resources depending on whether the mouse is hovering on them.
         if resource_text_rect.collidepoint(mouse_pos):
             for resource_index, (resource_name, resource_amount) in enumerate(
                 curr_player_resources.items()
             ):
+                # Renders picture icon image.
                 window.blit(
                     pygame.transform.scale(
                         self.board.get_icon_sprite_sheet().get_sprite_from_name(
@@ -115,6 +122,7 @@ class UIText:
                     ),
                 )
 
+                # Renders text for amount.
                 self.font.render_to(
                     window,
                     (
@@ -127,6 +135,7 @@ class UIText:
                 )
 
     def render_player_turn_text_to(self, window: pygame.display) -> None:
+        # Renders turn counter.
         self.font.render_to(
             window,
             (20, self.board_pos[1]),
@@ -134,6 +143,7 @@ class UIText:
             self.text_colour,
         )
 
+        # Renders current turn tracker.
         self.font.render_to(
             window,
             (
@@ -144,6 +154,7 @@ class UIText:
             self.text_colour,
         )
 
+        # Renders number of actions left for the current player.
         self.font.render_to(
             window,
             (
@@ -156,6 +167,7 @@ class UIText:
         )
 
     def render_status_text_to(self, window: pygame.display) -> None:
+        # Renders feedback on the action last taken (success / reason of failure).
         self.font.render_to(
             window,
             (20, 50),

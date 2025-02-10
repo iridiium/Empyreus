@@ -86,6 +86,7 @@ class Product:
     def check_reqs(self, player: Player) -> bool:
         player_resources = player.get_resources()
 
+        # Checks that every individual player resources is higher than the individual resource needed.
         for resource, resource_amount in self.cost.items():
             if player_resources[resource] < resource_amount:
                 return False

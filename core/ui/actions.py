@@ -46,6 +46,9 @@ class UIActions:
     def check_for_action(
         self, mouse_pos: tuple[int, int]
     ) -> None | tuple[int, int]:
+        # Returns the index in the actions list of the button that was clicked.
+
+        # Handles any potential list out-of-bounds errors.
         if not (
             self.pos[0] < mouse_pos[0] < self.pos_end[0]
             and self.pos[1] < mouse_pos[1] < self.pos_end[1]
@@ -60,6 +63,7 @@ class UIActions:
     def render_to(self, window: pygame.Surface) -> None:
         for y in range(self.dims[1]):
             for x in range(self.dims[0]):
+                # Renders the rectangle composing the button.
                 action_rect = pygame.draw.rect(
                     window,
                     self.background_colour,
@@ -71,6 +75,7 @@ class UIActions:
                     ),
                 )
 
+                # Renders the name on the button.
                 action_text = self.font.render(
                     self.action_names[y][x],
                     self.text_colour,

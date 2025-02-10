@@ -139,21 +139,24 @@ class SceneManager:
         while self.running:
             self.window.blit(self.background.image, self.background.rect)
 
+            # Calls the correct scene function for the value in self.scene_name.
+            # Functions like a five-branch if statement.
             {
                 "end": lambda: self.end_scene(),
                 "game": lambda: self.game_scene(),
                 "help": lambda: self.help_scene(),
                 "shop": lambda: self.shop_scene(),
                 "title": lambda: self.title_scene(),
-            }[
-                self.scene_name
-            ]()  # Calls the correct scene function for the value in self.scene_name
+            }[self.scene_name]()
 
+            # Updates the contents of the whole display.
             pygame.display.flip()
 
+            # Sets the game FPS to 60.
             self.clock.tick(60)
 
     def end_scene(self) -> None:
+        # Renders text showing who won.
         title_text = self.font_bold.render(
             f"P{self.winner_num + 1} ({self.winner_name}) WINS",
             self.text_colour,
@@ -163,9 +166,9 @@ class SceneManager:
             self.window_size[0] / 2,
             self.window_size[1] / 2,
         )
-
         self.window.blit(title_text[0], title_text[1])
 
+        # Renders text showing how to start a new game.
         instruction_text = self.font.render(
             "Enter the number of players (1 to 5) to start a new game.",
             self.text_colour,
@@ -174,18 +177,21 @@ class SceneManager:
             self.window_size[0] / 2,
             self.window_size[1] * 0.75,
         )
-
         self.window.blit(instruction_text[0], instruction_text[1])
 
         for event in pygame.event.get():
             if not self.running:
+                # Quit game if game flow stopped.
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    # Stop game flow when designated key pressed.
                     self.running = False
                 elif pygame.K_1 <= event.key <= pygame.K_5:
+                    # If a number key from one to five is pressed,
+                    # remove all players from the list and add new ones in.
                     self.players.clear()
 
                     self.selected_names = random.sample(
@@ -199,11 +205,15 @@ class SceneManager:
 
     def game_scene(self) -> None:
         # When a player has won, show this on the end game screen.
+
+        # Sort the players by score ascending, then take the last (highest-scoring) player.
         highest_scoring_player = merge_sort(
             self.players.get_list(), lambda a, b: a.get_score() < b.get_score()
         )[-1]
 
         if highest_scoring_player.get_score() >= 5:
+            # If the winning score threshold has been surpassed,
+            # Setup the attributes to show the winning player on the end scene.
             self.scene_name = "end"
             self.winner_num = highest_scoring_player.get_num()
             self.winner_name = highest_scoring_player.get_name()
@@ -216,10 +226,12 @@ class SceneManager:
 
         for event in pygame.event.get():
             if not self.running:
+                # Quit game if game flow stopped.
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                # Stop game flow when designated key pressed.
                 self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if (
@@ -255,6 +267,7 @@ class SceneManager:
         )
 
         for help_text_line_idx, help_text_line in enumerate(self.help_text):
+            # Render each of the guide's individual line of text.
             self.font.render_to(
                 self.window,
                 (
@@ -268,12 +281,15 @@ class SceneManager:
 
         for event in pygame.event.get():
             if not self.running:
+                # Quit game if game flow stopped.
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                # Stop game flow when designated key pressed.
                 self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Return to game when scene clicked.
                 self.scene_name = "game"
 
     def shop_scene(self) -> None:
@@ -290,6 +306,9 @@ class SceneManager:
         shop_products_text_spacing = 2.5 * self.font_size
 
         for product_idx, product in enumerate(self.shop.get_products()):
+            # Render each individual product's line of text.
+
+            # Render index and name.
             self.font.render_to(
                 self.window,
                 (
@@ -301,6 +320,7 @@ class SceneManager:
                 self.text_colour,
             )
 
+            # Render image.
             self.window.blit(
                 pygame.transform.scale(
                     product.get_icon_image(), (self.font_size, self.font_size)
@@ -312,6 +332,7 @@ class SceneManager:
                 ),
             )
 
+            # Render cost.
             self.font.render_to(
                 self.window,
                 (
@@ -329,6 +350,7 @@ class SceneManager:
                 self.text_colour,
             )
 
+            # Render effect description.
             self.font.render_to(
                 self.window,
                 (
@@ -340,6 +362,7 @@ class SceneManager:
                 self.text_colour,
             )
 
+        # Render status of the last purchase (success / reason of failure).
         self.font.render_to(
             self.window,
             (shop_text_pos[0], self.window_size[1] - shop_text_pos[1]),
@@ -351,13 +374,15 @@ class SceneManager:
 
         for event in pygame.event.get():
             if not self.running:
+                # Quit game if game flow stopped.
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    # Stop game flow when designated key pressed.
                     self.running = False
-                # Conditions fo handling the player buying a product.
+                # Conditions for handling the player buying a product.
                 # Checks for the key press of a product's index.
                 elif event.key in self.shop.get_idxs_ascii():
                     # Checks for the plaer being on a trading station.
@@ -386,6 +411,7 @@ class SceneManager:
                             f"Insufficient location, must be on a trader tile."
                         )
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Return to game when scene clicked.
                 self.scene_name = "game"
 
     def title_scene(self) -> None:
@@ -414,11 +440,13 @@ class SceneManager:
 
         for event in pygame.event.get():
             if not self.running:
+                # Quit game if game flow stopped.
                 pygame.display.quit()
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    # Stop game flow when designated key pressed.
                     self.running = False
                 elif pygame.K_1 <= event.key <= pygame.K_5:
                     self.selected_names = random.sample(

@@ -35,6 +35,7 @@ class Player:
         }
 
         self.board_graph = board.get_graph()
+        # Ensuring the player always starts on a planet
         self.pos = board.get_rand_non_empty_pos()
         self.rect = self.image.get_rect()
         self.rect.center = self.board.get_tile_centre_pos(self.pos)
@@ -84,9 +85,6 @@ class Player:
 
     def set_resources(self, new_resources) -> None:
         self.resources = new_resources
-
-    def get_ship_image_file_location(self) -> str:
-        return random.choice(os.listdir("./assets/images/tiny-spaceships"))
 
     def reset_actions_left(self) -> None:
         self.actions_left = self.actions_per_turn
@@ -154,6 +152,7 @@ class PlayerList:
             }
             for resource_name in resources.names
         }
+        # The folder from which all player images are to be randomly picked from.
         self.image_folder_path = image_folder_path
 
         self.curr = None  # The player who is currently taking their turn.
@@ -172,6 +171,8 @@ class PlayerList:
         return self.turns_taken
 
     def cycle_curr(self, num_turns: int = 1) -> None | Player:
+        # Shifts the current player to the next player in the order.
+        # Done as many times as specified by num_turns.
         if self.curr == None:
             return None
 
@@ -223,6 +224,7 @@ class PlayerList:
             self.curr = self.first
 
     def get_list(self) -> list:
+        # Returns a turn-ordered list of all the players.
         if self.first is None:
             return []
 
