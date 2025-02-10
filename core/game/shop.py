@@ -13,13 +13,13 @@ class Shop:
         self.idxs = [product.get_idx() for product in self.products]
         self.idxs_ascii = [ord(idx) for idx in self.idxs]
 
-    def get_products(self):
+    def get_products(self) -> list[Product]:
         return self.products
 
-    def get_idxs(self):
+    def get_idxs(self) -> list[int]:
         return self.idxs
 
-    def get_idxs_ascii(self):
+    def get_idxs_ascii(self) -> list[int]:
         return self.idxs_ascii
 
     def buy_product(self, player: Player, product_idx: int) -> None:
@@ -28,6 +28,7 @@ class Shop:
         # Runs the effect command, stored as an function attribute.
         product.get_effect()()
 
+        # Grants score points from purchase to player.
         player.change_score_by(product.get_score())
 
         # Removes all specified resources for the product.
@@ -37,12 +38,22 @@ class Shop:
         player.set_resources(player_resources)
 
     def check_product_reqs(self, player: Player, product_idx: int) -> bool:
+        # Calls function of aggregated element.
         return self.products[product_idx - 1].check_reqs(player)
 
 
 class Product:
 
-    def __init__(self, idx, name, icon_image, cost, effect, score, effect_desc):
+    def __init__(
+        self,
+        idx: str,
+        name: str,
+        icon_image: pygame.Surface,
+        cost: dict[str, int],
+        effect: Callable,
+        score: int,
+        effect_desc: str,
+    ):
         self.idx = idx
         self.name = name
         self.icon_image = icon_image

@@ -13,7 +13,7 @@ Turn details:
 - - You can only move between tiles connected with a white line.
 - - When you move onto a planet, you get 1 of its associated resource.
 - Trading at a trading station: all actions left. 
-- - At a trading ship you can exchange 5 of one resource for 3 random resources.
+- - At a trading ship you can exchange 5 of one resource for any 4 random resources.
 - - The resource taken by a trading ship is denoted by the icon in its top-left corner.
 
 Obtain 5 points from buying products to win!

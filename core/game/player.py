@@ -46,7 +46,7 @@ class Player:
 
         self.next = None
 
-    def change_actions_per_turn_by(self, actions_per_turn_change):
+    def change_actions_per_turn_by(self, actions_per_turn_change: int) -> None:
         self.actions_per_turn += actions_per_turn_change
 
     def get_actions_left(self) -> int:
@@ -70,7 +70,7 @@ class Player:
     def get_score(self):
         return self.score
 
-    def change_score_by(self, score_change):
+    def change_score_by(self, score_change: int) -> None:
         self.score += score_change
 
     def get_status(self) -> str:
@@ -82,7 +82,7 @@ class Player:
     def get_resources(self) -> dict:
         return self.resources
 
-    def set_resources(self, new_resources) -> dict:
+    def set_resources(self, new_resources) -> None:
         self.resources = new_resources
 
     def get_ship_image_file_location(self) -> str:
@@ -108,7 +108,7 @@ class Player:
             ):
                 self.resources[new_pos_resource_type] += 1
 
-            return self.actions_left
+        return self.actions_left
 
     def trade(self) -> bool:
         """
@@ -117,12 +117,12 @@ class Player:
 
         Returns whether the trade was successful.
         """
-        if not self.board.get_type_from_board_pos(self.pos).startswith(
-            "trader"
-        ):
+        tile = self.board.get_matrix()[self.pos[1]][self.pos[0]]
+
+        if not tile.get_can_trade():
             return False
 
-        trade = self.board.get_matrix()[self.pos[1]][self.pos[0]].get_trade()
+        trade = tile.get_trade()
 
         if self.resources[trade["type_taken"]] >= trade["amount_taken"]:
             self.resources[trade["type_taken"]] -= trade["amount_taken"]
@@ -142,7 +142,7 @@ class Player:
         window.blit(self.image, self.rect)
 
 
-# Linked List
+# Implementation of a circular linked list
 class PlayerList:
     def __init__(
         self, board: Board, resources: SpriteSheet, image_folder_path: str
@@ -165,13 +165,16 @@ class PlayerList:
     def get_curr(self) -> None | Player:
         return self.curr
 
-    def get_status(self) -> str:
-        return self.curr.get_status()
+    def get_status(self) -> None | str:
+        return self.curr.get_status() if self.curr else None
 
     def get_turns_taken(self) -> int:
         return self.turns_taken
 
-    def cycle_curr(self, num_turns: int = 1) -> Player:
+    def cycle_curr(self, num_turns: int = 1) -> None | Player:
+        if self.curr == None:
+            return None
+
         for _ in range(num_turns):
             self.turns_taken += 1
 

@@ -1,3 +1,19 @@
+from __future__ import annotations
+
+# avoiding circular imports in type hints
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .player import PlayerList
+
+    from ..game.board import Board
+    from ..game.background import Background
+    from ..game.shop import Shop
+
+    from ..ui.actions import UIActions
+    from ..ui.background import Background
+    from ..ui.text import UIText
+
 import pygame
 import random
 import sys
@@ -11,18 +27,18 @@ from .ui.text import UIText
 class SceneManager:
     def __init__(
         self,
-        window,
-        window_size,
-        background,
-        board,
-        players,
-        shop,
-        font_size,
-        font_bold_size,
-        font,
-        font_bold,
-        colours,
-        text_colour,
+        window: pygame.Surface,
+        window_size: tuple[int, int],
+        background: Background,
+        board: Board,
+        players: PlayerList,
+        shop: Shop,
+        font_size: int,
+        font_bold_size: int,
+        font: pygame.freetype.Font,
+        font_bold: pygame.freetype.Font,
+        colours: dict[str, tuple[int, int, int]],
+        text_colour: tuple[int, int, int],
     ):
         self.window = window
         self.window_size = window_size
@@ -114,25 +130,30 @@ class SceneManager:
             "Zephyr",
         ]
 
-    def set_scene(self, new_scene):
+        self.clock = pygame.time.Clock()
+
+    def set_scene(self, new_scene) -> None:
         self.scene_name = new_scene
 
-    def handle_actions(self):
-        self.window.blit(self.background.image, self.background.rect)
+    def handle_actions(self) -> None:
+        while self.running:
+            self.window.blit(self.background.image, self.background.rect)
 
-        {
-            "end": lambda: self.end_scene(),
-            "game": lambda: self.game_scene(),
-            "help": lambda: self.help_scene(),
-            "shop": lambda: self.shop_scene(),
-            "title": lambda: self.title_scene(),
-        }[
-            self.scene_name
-        ]()  # Calls the correct scene function for the value in self.scene_name
+            {
+                "end": lambda: self.end_scene(),
+                "game": lambda: self.game_scene(),
+                "help": lambda: self.help_scene(),
+                "shop": lambda: self.shop_scene(),
+                "title": lambda: self.title_scene(),
+            }[
+                self.scene_name
+            ]()  # Calls the correct scene function for the value in self.scene_name
 
-        pygame.display.flip()
+            pygame.display.flip()
 
-    def end_scene(self):
+            self.clock.tick(60)
+
+    def end_scene(self) -> None:
         title_text = self.font_bold.render(
             f"P{self.winner_num} ({self.winner_name}) WINS",
             self.text_colour,
@@ -146,7 +167,7 @@ class SceneManager:
         self.window.blit(title_text[0], title_text[1])
 
         instruction_text = self.font.render(
-            "Enter the number of players (2 to 5) to start a new game.",
+            "Enter the number of players (1 to 5) to start a new game.",
             self.text_colour,
         )
         instruction_text[1].center = (
@@ -164,7 +185,7 @@ class SceneManager:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                elif pygame.K_2 <= event.key <= pygame.K_5:
+                elif pygame.K_1 <= event.key <= pygame.K_5:
                     self.selected_names = random.sample(
                         self.names, event.key - 48
                     )
@@ -174,7 +195,7 @@ class SceneManager:
 
                     self.scene_name = "game"
 
-    def game_scene(self):
+    def game_scene(self) -> None:
         # When a player has won, show this on the end game screen.
         highest_scoring_player = merge_sort(
             self.players.get_list(), lambda a, b: a.get_score() < b.get_score()
@@ -221,7 +242,7 @@ class SceneManager:
         for player_num, player in enumerate(self.players.get_list()):
             player.render_to(self.window)
 
-    def help_scene(self):
+    def help_scene(self) -> None:
         help_text_pos = (60, 60)
 
         self.font_bold.render_to(
@@ -253,7 +274,7 @@ class SceneManager:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.scene_name = "game"
 
-    def shop_scene(self):
+    def shop_scene(self) -> None:
         shop_text_pos = (60, 60)
 
         self.font_bold.render_to(
@@ -334,12 +355,18 @@ class SceneManager:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
+                # Conditions fo handling the player buying a product.
+                # Checks for the key press of a product's index.
                 elif event.key in self.shop.get_idxs_ascii():
+                    # Checks for the plaer being on a trading station.
                     if self.board.get_type_from_board_pos(
                         curr_player.get_pos()
                     ).startswith("trader"):
+                        # Checks for the player having sufficient resources.
                         if self.shop.check_product_reqs(
-                            curr_player, product_idx := event.key - 48
+                            curr_player,
+                            product_idx := event.key
+                            - 48,  # Subtracts 48 for ASCII conversion.
                         ):
                             self.shop.buy_product(curr_player, product_idx)
                             self.status = "purchase_success"
@@ -359,7 +386,7 @@ class SceneManager:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.scene_name = "game"
 
-    def title_scene(self):
+    def title_scene(self) -> None:
         title_text = self.font_bold.render(
             "EMPYREUS",
             self.text_colour,
@@ -373,7 +400,7 @@ class SceneManager:
         self.window.blit(title_text[0], title_text[1])
 
         instruction_text = self.font.render(
-            "Enter the number of players (2 to 5) to start a new game.",
+            "Enter the number of players (1 to 5) to start a new game.",
             self.text_colour,
         )
         instruction_text[1].center = (
@@ -391,7 +418,7 @@ class SceneManager:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                elif pygame.K_2 <= event.key <= pygame.K_5:
+                elif pygame.K_1 <= event.key <= pygame.K_5:
                     self.selected_names = random.sample(
                         self.names, event.key - 48
                     )

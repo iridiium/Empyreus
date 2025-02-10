@@ -26,6 +26,7 @@ class Tile:
         self.rect = self.image.get_rect()
 
         self.can_trade = False
+        self.trade = None
 
     def get_can_trade(self) -> bool:
         return self.can_trade
@@ -42,6 +43,9 @@ class Tile:
     def get_image(self) -> pygame.Surface:
         return self.image
 
+    def get_trade(self) -> tuple[str, int]:
+        return self.trade
+
     def get_type(self) -> str:
         return self.type
 
@@ -52,6 +56,8 @@ class Tile:
         return rect_in_board
 
 
+# Inherited class from Tile.
+# Handles the additional trading behaviour of a trading station that a regular station doesn't have.
 class TraderTile(Tile):
     def __init__(
         self,
@@ -69,12 +75,9 @@ class TraderTile(Tile):
             border_size,
         )
 
-        self.can_trade: bool = True
-        self.trade: tuple[str, int] = {
+        self.can_trade: bool = True  # Polymorphism
+        self.trade: dict = {
             "type_taken": tile["trade_type"],
             "amount_taken": 5,
             "amount_given": 4,
         }  # there is no "type_given" as all traders return random resources.
-
-    def get_trade(self) -> tuple[str, int]:
-        return self.trade

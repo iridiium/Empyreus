@@ -43,7 +43,9 @@ class UIActions:
             self.pos[1] + self.dims[1] * self.elem_size[1],
         )
 
-    def check_for_action(self, mouse_pos):
+    def check_for_action(
+        self, mouse_pos: tuple[int, int]
+    ) -> None | tuple[int, int]:
         if not (
             self.pos[0] < mouse_pos[0] < self.pos_end[0]
             and self.pos[1] < mouse_pos[1] < self.pos_end[1]
@@ -55,7 +57,7 @@ class UIActions:
             int((mouse_pos[1] - self.pos[1]) // self.elem_size[1]),
         )
 
-    def render_to(self, window: pygame.display):
+    def render_to(self, window: pygame.Surface) -> None:
         for y in range(self.dims[1]):
             for x in range(self.dims[0]):
                 action_rect = pygame.draw.rect(

@@ -42,8 +42,6 @@ class Main:
         self.tile_border_size = (8, 8)
         self.tile_size = (80, 80)
 
-        self.num_players = 2
-
         self.board = Board(
             dims=self.board_dims,
             line_colour=self.colours["white"],
@@ -69,7 +67,6 @@ class Main:
         )
 
         self.window = pygame.display.set_mode(self.window_size)
-        self.clock = pygame.time.Clock()
 
         self.board_pos = self.board.get_pos()
 
@@ -79,7 +76,7 @@ class Main:
             "./assets/images/tiny-spaceships",
         )
         self.shop = Shop(
-            [
+            products=[
                 Product(
                     idx="1",
                     name="Engine Upgrade 1",
@@ -124,12 +121,7 @@ class Main:
             text_colour=self.text_colour,
         )
 
-        self.running = True
-
-    def run_game_loop(self):
+    def start_game(self) -> None:
         pygame.init()
 
-        while self.running:
-            self.scene_manager.handle_actions()
-
-            self.clock.tick(100)
+        self.scene_manager.handle_actions()
